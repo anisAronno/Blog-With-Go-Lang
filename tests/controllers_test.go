@@ -17,7 +17,7 @@ func TestHomeController(t *testing.T) {
 		// Note: This would require proper template setup in a real test
 		// For now, we're testing the basic structure
 		homeController := controllers.NewHomeController()
-		
+
 		// This is a basic structure test
 		if homeController == nil {
 			t.Error("Expected home controller to be created")
@@ -30,7 +30,7 @@ func TestAuthController(t *testing.T) {
 	// Test controller creation
 	t.Run("CreateAuthController", func(t *testing.T) {
 		authController := controllers.NewAuthController()
-		
+
 		if authController == nil {
 			t.Error("Expected auth controller to be created")
 		}
@@ -108,7 +108,7 @@ func TestBlogController(t *testing.T) {
 	// Test controller creation
 	t.Run("CreateBlogController", func(t *testing.T) {
 		blogController := controllers.NewBlogController()
-		
+
 		if blogController == nil {
 			t.Error("Expected blog controller to be created")
 		}
@@ -149,7 +149,7 @@ func TestDashboardController(t *testing.T) {
 	// Test controller creation
 	t.Run("CreateDashboardController", func(t *testing.T) {
 		dashboardController := controllers.NewDashboardController()
-		
+
 		if dashboardController == nil {
 			t.Error("Expected dashboard controller to be created")
 		}
@@ -161,7 +161,7 @@ func TestHTTPMethods(t *testing.T) {
 	// Test GET request
 	t.Run("GETRequest", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/test", nil)
-		
+
 		if req.Method != "GET" {
 			t.Errorf("Expected method GET, got %s", req.Method)
 		}
@@ -170,7 +170,7 @@ func TestHTTPMethods(t *testing.T) {
 	// Test POST request
 	t.Run("POSTRequest", func(t *testing.T) {
 		req := httptest.NewRequest("POST", "/test", nil)
-		
+
 		if req.Method != "POST" {
 			t.Errorf("Expected method POST, got %s", req.Method)
 		}
@@ -181,15 +181,15 @@ func TestHTTPMethods(t *testing.T) {
 func TestResponseWriter(t *testing.T) {
 	t.Run("ResponseWriterBasics", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		
+
 		// Test writing response
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Test response"))
-		
+
 		if w.Code != http.StatusOK {
 			t.Errorf("Expected status code %d, got %d", http.StatusOK, w.Code)
 		}
-		
+
 		if w.Body.String() != "Test response" {
 			t.Errorf("Expected body 'Test response', got '%s'", w.Body.String())
 		}
@@ -198,13 +198,13 @@ func TestResponseWriter(t *testing.T) {
 	t.Run("RedirectResponse", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest("GET", "/test", nil)
-		
+
 		http.Redirect(w, req, "/redirect-target", http.StatusSeeOther)
-		
+
 		if w.Code != http.StatusSeeOther {
 			t.Errorf("Expected status code %d, got %d", http.StatusSeeOther, w.Code)
 		}
-		
+
 		location := w.Header().Get("Location")
 		if location != "/redirect-target" {
 			t.Errorf("Expected location '/redirect-target', got '%s'", location)
@@ -221,21 +221,21 @@ func TestFormValidation(t *testing.T) {
 			"user.name@domain.co.uk",
 			"admin@test-site.org",
 		}
-		
+
 		invalidEmails := []string{
 			"invalid-email",
 			"@domain.com",
 			"user@",
 			"",
 		}
-		
+
 		// Basic email validation (simplified)
 		for _, email := range validEmails {
 			if !strings.Contains(email, "@") || !strings.Contains(email, ".") {
 				t.Errorf("Valid email %s failed basic validation", email)
 			}
 		}
-		
+
 		for _, email := range invalidEmails {
 			if email != "" && strings.Contains(email, "@") && strings.Contains(email, ".") {
 				// This would pass basic validation but might still be invalid
@@ -247,9 +247,9 @@ func TestFormValidation(t *testing.T) {
 	// Test password validation
 	t.Run("PasswordValidation", func(t *testing.T) {
 		testCases := []struct {
-			password string
+			password  string
 			minLength int
-			valid    bool
+			valid     bool
 		}{
 			{"password123", 6, true},
 			{"short", 6, false},
@@ -257,11 +257,11 @@ func TestFormValidation(t *testing.T) {
 			{"longpassword", 8, true},
 			{"test", 8, false},
 		}
-		
+
 		for _, tc := range testCases {
 			isValid := len(tc.password) >= tc.minLength
 			if isValid != tc.valid {
-				t.Errorf("Password '%s' with min length %d: expected valid=%v, got valid=%v", 
+				t.Errorf("Password '%s' with min length %d: expected valid=%v, got valid=%v",
 					tc.password, tc.minLength, tc.valid, isValid)
 			}
 		}
@@ -278,11 +278,11 @@ func TestFormValidation(t *testing.T) {
 			{"   ", false}, // Only whitespace
 			{"a", true},
 		}
-		
+
 		for _, tc := range testCases {
 			isValid := strings.TrimSpace(tc.value) != ""
 			if isValid != tc.valid {
-				t.Errorf("Value '%s': expected valid=%v, got valid=%v", 
+				t.Errorf("Value '%s': expected valid=%v, got valid=%v",
 					tc.value, tc.valid, isValid)
 			}
 		}

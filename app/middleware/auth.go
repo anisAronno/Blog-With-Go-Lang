@@ -171,6 +171,6 @@ func ClearUserSession(w http.ResponseWriter, r *http.Request) error {
 	// Clear session values
 	session.Values = make(map[interface{}]interface{})
 	session.Options.MaxAge = -1 // Mark for deletion
-	
+
 	return session.Save(r, w)
 }

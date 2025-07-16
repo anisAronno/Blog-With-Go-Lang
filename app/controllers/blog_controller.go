@@ -82,10 +82,10 @@ func (c *BlogController) AdminIndex(w http.ResponseWriter, r *http.Request) {
 
 	// Prepare data for template
 	data := map[string]interface{}{
-		"Title":   "All Blogs (Admin Management)",
-		"Blogs":   blogs,
-		"User":    user,
-		"IsAdmin": true,
+		"Title":     "All Blogs (Admin Management)",
+		"Blogs":     blogs,
+		"User":      user,
+		"IsAdmin":   true,
 		"AdminView": true, // Flag to indicate this is admin view
 	}
 
@@ -358,10 +358,10 @@ func (c *BlogController) AdminDelete(w http.ResponseWriter, r *http.Request) {
 func (c *BlogController) showCreateWithError(w http.ResponseWriter, r *http.Request, errorMsg, title, content string) {
 	user, _ := middleware.GetCurrentUser(r)
 	data := map[string]interface{}{
-		"Title":   "Create New Blog",
-		"User":    user,
-		"Error":   errorMsg,
-		"OldTitle": title,
+		"Title":      "Create New Blog",
+		"User":       user,
+		"Error":      errorMsg,
+		"OldTitle":   title,
 		"OldContent": content,
 	}
 	renderTemplate(w, "dashboard/blogs/create", data)

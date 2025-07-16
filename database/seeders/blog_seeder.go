@@ -1,107 +1,122 @@
-// database/seeders/blog_seeder.go - Seed blog data for testing
-package main
+package seeders
 
 import (
-	"go-web-app/config"
+	"database/sql"
+	"fmt"
+	"go-web-app/app/models"
 	"log"
-
-	_ "github.com/go-sql-driver/mysql"
+	"math/rand"
+	"time"
 )
 
-func main() {
-	// Load configuration
-	appConfig := config.LoadConfig()
-	
-	// Connect to database
-	db, err := config.ConnectDatabase(appConfig)
+// BlogSeeder handles blog data seeding
+type BlogSeeder struct {
+	DB        *sql.DB
+	BlogModel *models.BlogModel
+	UserModel *models.UserModel
+}
+
+// NewBlogSeeder creates a new blog seeder
+func NewBlogSeeder(db *sql.DB) *BlogSeeder {
+	return &BlogSeeder{
+		DB:        db,
+		BlogModel: models.NewBlogModel(db),
+		UserModel: models.NewUserModel(db),
+	}
+}
+
+// Seed creates sample blog posts
+func (s *BlogSeeder) Seed() error {
+	log.Println("🌱 Seeding blogs...")
+
+	// Get all users to assign blogs to
+	users, err := s.UserModel.GetAll()
 	if err != nil {
-		log.Fatal("Failed to connect to database: ", err)
+		return fmt.Errorf("failed to get users: %v", err)
 	}
-	defer db.Close()
 
-	log.Println("🌱 Seeding blog data...")
+	if len(users) == 0 {
+		log.Println("⚠️  No users found, skipping blog seeding")
+		return nil
+	}
 
-	// Get user IDs to assign blogs to
-	var userIDs []int
-	userQuery := `SELECT id FROM users ORDER BY id`
-	rows, err := db.Query(userQuery)
+	blogTitles := []string{
+		"Getting Started with Go Programming",
+		"Understanding Database Design Patterns",
+		"Modern Web Development with Go",
+		"Building RESTful APIs",
+		"Docker and Container Orchestration",
+		"Introduction to Machine Learning",
+		"Cloud Computing Best Practices",
+		"Cybersecurity Fundamentals",
+		"Mobile App Development Trends",
+		"DevOps Culture and Practices",
+	}
+
+	blogContents := []string{
+		"Go is a powerful programming language developed by Google. It offers excellent performance and simplicity that makes it perfect for modern web applications.",
+		"Database design patterns are crucial for building scalable applications. Understanding normalization, indexing, and relationships is key to success.",
+		"Modern web development requires understanding of both frontend and backend technologies. Go provides excellent tools for building robust web applications.",
+		"RESTful APIs are the backbone of modern web services. They provide a standardized way for applications to communicate with each other.",
+		"Docker has revolutionized how we deploy and manage applications. Container orchestration with Kubernetes takes this to the next level.",
+		"Machine learning is transforming industries. Understanding the basics of ML algorithms and data processing is becoming essential for developers.",
+		"Cloud computing offers scalability and flexibility. Learning best practices for cloud deployment ensures reliable and cost-effective solutions.",
+		"Cybersecurity is more important than ever. Understanding common vulnerabilities and security practices protects both users and businesses.",
+		"Mobile app development continues to evolve. Cross-platform frameworks and native development each have their place in modern app development.",
+		"DevOps culture emphasizes collaboration between development and operations teams. Automation and continuous integration are key practices.",
+	}
+
+	// Seed 15 blog posts
+	for i := 0; i < 15; i++ {
+		// Randomly select a user and blog content
+		userIndex := rand.Intn(len(users))
+		titleIndex := rand.Intn(len(blogTitles))
+		contentIndex := rand.Intn(len(blogContents))
+
+		user := users[userIndex]
+		title := fmt.Sprintf("%s - Part %d", blogTitles[titleIndex], (i%3)+1)
+		content := fmt.Sprintf("%s\n\nThis is a detailed exploration of the topic with practical examples and real-world applications. The content provides valuable insights for developers and technology enthusiasts.", blogContents[contentIndex])
+
+		// Check if similar blog already exists
+		query := `SELECT COUNT(*) FROM blogs WHERE title = ? AND user_id = ?`
+		var count int
+		err := s.DB.QueryRow(query, title, user.ID).Scan(&count)
+		if err != nil {
+			return fmt.Errorf("failed to check existing blog: %v", err)
+		}
+
+		if count > 0 {
+			log.Printf("⏭️  Blog '%s' already exists, skipping", title)
+			continue
+		}
+
+		// Create blog
+		_, err = s.BlogModel.Create(title, content, user.ID)
+		if err != nil {
+			return fmt.Errorf("failed to create blog: %v", err)
+		}
+
+		log.Printf("✅ Created blog: '%s' by %s", title, user.Name)
+	}
+
+	log.Println("✅ Blog seeding completed")
+	return nil
+}
+
+// Clear removes all blog posts
+func (s *BlogSeeder) Clear() error {
+	log.Println("🧹 Clearing blog data...")
+
+	query := `DELETE FROM blogs`
+	_, err := s.DB.Exec(query)
 	if err != nil {
-		log.Fatal("Failed to get users: ", err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var userID int
-		err := rows.Scan(&userID)
-		if err != nil {
-			log.Fatal("Failed to scan user ID: ", err)
-		}
-		userIDs = append(userIDs, userID)
+		return fmt.Errorf("failed to clear blogs: %v", err)
 	}
 
-	if len(userIDs) == 0 {
-		log.Fatal("No users found. Please create users first.")
-	}
+	log.Println("✅ Blog data cleared")
+	return nil
+}
 
-	// Sample blog data
-	blogs := []struct {
-		Title   string
-		Content string
-		UserID  int
-	}{
-		{
-			"Getting Started with Go Web Development",
-			"Go is an excellent choice for web development. Its simplicity, performance, and built-in concurrency make it perfect for building scalable web applications. In this post, we'll explore the fundamentals of web development with Go, including routing, middleware, and template rendering.",
-			userIDs[0],
-		},
-		{
-			"Building RESTful APIs with Go",
-			"REST APIs are the backbone of modern web applications. Go provides excellent tools for building robust, scalable APIs. We'll cover HTTP routing, JSON handling, middleware implementation, and best practices for API design and security.",
-			userIDs[0],
-		},
-		{
-			"Database Integration in Go",
-			"Working with databases is crucial for most web applications. This guide covers connecting to MySQL, performing CRUD operations, handling transactions, and implementing proper error handling. We'll also discuss connection pooling and performance optimization.",
-			userIDs[len(userIDs)-1],
-		},
-		{
-			"Go Templates and Frontend Integration",
-			"Go's template package provides powerful tools for generating dynamic HTML. Learn how to create reusable templates, handle template inheritance, pass data efficiently, and integrate with modern frontend frameworks.",
-			userIDs[0],
-		},
-		{
-			"Authentication and Authorization in Go",
-			"Security is paramount in web applications. This comprehensive guide covers implementing user authentication, session management, password hashing with bcrypt, role-based access control, and protecting against common security vulnerabilities.",
-			userIDs[len(userIDs)-1],
-		},
-		{
-			"Deployment and Production Best Practices",
-			"Taking your Go web application to production requires careful planning. We'll discuss Docker containerization, environment configuration, monitoring, logging, performance tuning, and scaling strategies for high-traffic applications.",
-			userIDs[0],
-		},
-		{
-			"Testing Go Web Applications",
-			"Quality assurance through testing is essential for reliable applications. Learn about unit testing, integration testing, mocking dependencies, testing HTTP handlers, and implementing continuous integration pipelines.",
-			userIDs[len(userIDs)-1],
-		},
-		{
-			"Microservices Architecture with Go",
-			"Go's performance and simplicity make it ideal for microservices. Explore service decomposition, inter-service communication, distributed tracing, service discovery, and handling the complexities of distributed systems.",
-			userIDs[0],
-		},
-	}
-
-	// Insert sample blogs
-	insertQuery := `INSERT INTO blogs (title, content, user_id, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())`
-	
-	for _, blog := range blogs {
-		_, err := db.Exec(insertQuery, blog.Title, blog.Content, blog.UserID)
-		if err != nil {
-			log.Printf("Warning: Failed to insert blog '%s': %v", blog.Title, err)
-		} else {
-			log.Printf("✅ Created blog: %s", blog.Title)
-		}
-	}
-
-	log.Println("🎉 Blog seeding completed successfully!")
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }

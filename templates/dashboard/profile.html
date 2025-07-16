@@ -49,19 +49,39 @@
           </nav>
         </div>
         <div class="flex items-center space-x-4">
-          <div class="text-right">
-            <div class="text-gray-700 text-sm font-medium">{{.User.Name}}</div>
-            <div class="text-xs text-gray-500">{{.User.Role}}</div>
+          <div class="relative">
+            <!-- Profile Dropdown -->
+            <div class="relative inline-block text-left">
+              <button
+                id="user-menu-button"
+                type="button"
+                class="flex items-center text-sm text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md px-3 py-2"
+                onclick="toggleDropdown()"
+              >
+                <div class="text-right mr-3">
+                  <div class="text-gray-700 text-sm font-medium">{{.User.Name}}</div>
+                  <div class="text-xs text-gray-500">{{.User.Role}}</div>
+                </div>
+                <i class="fas fa-chevron-down text-xs"></i>
+              </button>
+
+              <!-- Dropdown menu -->
+              <div
+                id="user-menu"
+                class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+              >
+                <form action="/logout" method="POST" class="block">
+                  <button
+                    type="submit"
+                    onclick="return confirm('Are you sure you want to logout?')"
+                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
-          <form action="/logout" method="POST" class="inline">
-            <button
-              type="submit"
-              onclick="return confirm('Are you sure you want to logout?')"
-              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200"
-            >
-              <i class="fas fa-sign-out-alt mr-1"></i>Logout
-            </button>
-          </form>
         </div>
       </div>
     </div>
@@ -329,4 +349,22 @@
     </div>
   </div>
 </div>
+
+<!-- JavaScript for dropdown functionality -->
+<script>
+function toggleDropdown() {
+  const dropdown = document.getElementById('user-menu');
+  dropdown.classList.toggle('hidden');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+  const button = document.getElementById('user-menu-button');
+  const dropdown = document.getElementById('user-menu');
+  
+  if (!button.contains(event.target) && !dropdown.contains(event.target)) {
+    dropdown.classList.add('hidden');
+  }
+});
+</script>
 {{end}}

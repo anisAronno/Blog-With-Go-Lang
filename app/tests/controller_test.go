@@ -14,7 +14,7 @@ import (
 func TestUserAccessControl(t *testing.T) {
 	// Load test configuration
 	config.LoadConfig()
-	
+
 	// Connect to test database
 	db, err := config.ConnectDatabase(config.LoadConfig())
 	if err != nil {
@@ -33,11 +33,11 @@ func TestUserAccessControl(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	
+
 	// This would normally require middleware to set up user session
 	// For now, we'll test the controller logic directly
 	_ = dashboardController
-	_ = req 
+	_ = req
 	_ = rr
 	t.Log("User access control test setup complete")
 }
@@ -46,7 +46,7 @@ func TestUserAccessControl(t *testing.T) {
 func TestUserDeletionCascade(t *testing.T) {
 	// Load test configuration
 	config.LoadConfig()
-	
+
 	// Connect to test database
 	db, err := config.ConnectDatabase(config.LoadConfig())
 	if err != nil {
@@ -71,7 +71,7 @@ func TestUserDeletionCascade(t *testing.T) {
 	// 2. Create test blogs for the user
 	// 3. Delete the user
 	// 4. Verify blogs are also deleted
-	
+
 	t.Log("User deletion cascade test setup complete")
 	_ = userModel
 	_ = blogModel

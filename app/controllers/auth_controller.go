@@ -157,7 +157,7 @@ func (c *AuthController) showRegisterWithError(w http.ResponseWriter, r *http.Re
 	data := map[string]interface{}{
 		"Title": "Register",
 		"Error": errorMsg,
-		"Name":  r.FormValue("name"),  // Preserve form data
+		"Name":  r.FormValue("name"), // Preserve form data
 		"Email": r.FormValue("email"),
 	}
 

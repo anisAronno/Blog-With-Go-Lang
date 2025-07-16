@@ -160,6 +160,11 @@ func (c *DashboardController) DeleteUser(w http.ResponseWriter, r *http.Request)
 	// Delete user
 	err = c.UserModel.Delete(userID)
 	if err != nil {
+		// Check if this is the main admin protection error
+		if err.Error() == "cannot delete the main administrator account" {
+			http.Error(w, "Cannot delete the main administrator account", http.StatusForbidden)
+			return
+		}
 		http.Error(w, "Failed to delete user", http.StatusInternalServerError)
 		return
 	}

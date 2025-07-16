@@ -1,0 +1,218 @@
+{{define "dashboard_layout"}}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Go Blog</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            backgroundImage: {
+              "gradient-primary":
+                "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              "gradient-secondary":
+                "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+              "gradient-success":
+                "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+
+  <body class="bg-gray-50">
+    <!-- Dashboard Layout -->
+    <div class="min-h-screen">
+      <!-- Top Navigation -->
+      <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16">
+            <!-- Left side - Logo and Navigation -->
+            <div class="flex items-center space-x-8">
+              <a href="/dashboard" class="flex-shrink-0 flex items-center">
+                <h1
+                  class="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent"
+                >
+                  <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </h1>
+              </a>
+
+              <!-- Navigation Menu -->
+              <div class="hidden md:flex space-x-6">
+                <a
+                  href="/dashboard"
+                  class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  <i class="fas fa-home mr-2"></i>Home
+                </a>
+                <a
+                  href="/dashboard/blogs"
+                  class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  <i class="fas fa-blog mr-2"></i>My Blogs
+                </a>
+                {{if .User.IsAdmin}}
+                <a
+                  href="/dashboard/blogs/admin"
+                  class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  <i class="fas fa-cog mr-2"></i>Manage Blogs
+                </a>
+                <a
+                  href="/dashboard/users"
+                  class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  <i class="fas fa-users mr-2"></i>Users
+                </a>
+                {{end}}
+              </div>
+            </div>
+
+            <!-- Right side - User Menu -->
+            <div class="flex items-center">
+              <!-- Mobile menu button -->
+              <div class="md:hidden">
+                <button
+                  id="mobile-menu-button"
+                  type="button"
+                  class="text-gray-700 hover:text-gray-900 focus:outline-none"
+                  onclick="toggleMobileMenu()"
+                >
+                  <i class="fas fa-bars text-xl"></i>
+                </button>
+              </div>
+
+              <!-- Profile Dropdown -->
+              <div class="relative ml-4">
+                <button
+                  id="user-menu-button"
+                  type="button"
+                  class="flex items-center text-sm text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md px-3 py-2"
+                  onclick="toggleDropdown()"
+                >
+                  <div class="text-right mr-3">
+                    <div class="text-gray-700 text-sm font-medium">
+                      {{.User.Name}}
+                    </div>
+                    <div class="text-xs text-gray-500 capitalize">
+                      {{.User.Role}}
+                    </div>
+                  </div>
+                  <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+
+                <!-- Dropdown menu -->
+                <div
+                  id="user-menu"
+                  class="hidden absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5"
+                >
+                  <a
+                    href="/dashboard/profile"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <i class="fas fa-user mr-2"></i>Profile
+                  </a>
+                  <form action="/logout" method="POST" class="block">
+                    <button
+                      type="submit"
+                      onclick="return confirm('Are you sure you want to logout?')"
+                      class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Navigation Menu -->
+          <div id="mobile-menu" class="hidden md:hidden pb-4">
+            <div class="flex flex-col space-y-2">
+              <a
+                href="/dashboard"
+                class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                <i class="fas fa-home mr-2"></i>Home
+              </a>
+              <a
+                href="/dashboard/blogs"
+                class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                <i class="fas fa-blog mr-2"></i>My Blogs
+              </a>
+              {{if .User.IsAdmin}}
+              <a
+                href="/dashboard/blogs/admin"
+                class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                <i class="fas fa-cog mr-2"></i>Manage Blogs
+              </a>
+              <a
+                href="/dashboard/users"
+                class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                <i class="fas fa-users mr-2"></i>Users
+              </a>
+              {{end}}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {{template "dashboard_content" .}}
+      </main>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      function toggleDropdown() {
+        const dropdown = document.getElementById("user-menu");
+        dropdown.classList.toggle("hidden");
+      }
+
+      function toggleMobileMenu() {
+        const menu = document.getElementById("mobile-menu");
+        menu.classList.toggle("hidden");
+      }
+
+      // Close dropdown when clicking outside
+      document.addEventListener("click", function (event) {
+        const button = document.getElementById("user-menu-button");
+        const dropdown = document.getElementById("user-menu");
+
+        if (
+          !button.contains(event.target) &&
+          !dropdown.contains(event.target)
+        ) {
+          dropdown.classList.add("hidden");
+        }
+
+        const mobileButton = document.getElementById("mobile-menu-button");
+        const mobileMenu = document.getElementById("mobile-menu");
+
+        if (
+          !mobileButton.contains(event.target) &&
+          !mobileMenu.contains(event.target)
+        ) {
+          mobileMenu.classList.add("hidden");
+        }
+      });
+    </script>
+  </body>
+</html>
+{{end}}

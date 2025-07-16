@@ -40,7 +40,7 @@ func (m *UserModel) Create(name, email, password string) (*User, error) {
 	// Insert user into database (default role is 'user')
 	query := `INSERT INTO users (name, email, password, role, created_at, updated_at) 
 			  VALUES (?, ?, ?, 'user', NOW(), NOW())`
-	
+
 	result, err := m.DB.Exec(query, name, email, string(hashedPassword))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create user: %v", err)
@@ -61,12 +61,12 @@ func (m *UserModel) GetByID(id int) (*User, error) {
 	user := &User{}
 	query := `SELECT id, name, email, password, role, created_at, updated_at 
 			  FROM users WHERE id = ?`
-	
+
 	err := m.DB.QueryRow(query, id).Scan(
 		&user.ID, &user.Name, &user.Email, &user.Password, &user.Role,
 		&user.CreatedAt, &user.UpdatedAt,
 	)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("user not found")
@@ -82,12 +82,12 @@ func (m *UserModel) GetByEmail(email string) (*User, error) {
 	user := &User{}
 	query := `SELECT id, name, email, password, role, created_at, updated_at 
 			  FROM users WHERE email = ?`
-	
+
 	err := m.DB.QueryRow(query, email).Scan(
 		&user.ID, &user.Name, &user.Email, &user.Password, &user.Role,
 		&user.CreatedAt, &user.UpdatedAt,
 	)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("user not found")
@@ -98,11 +98,24 @@ func (m *UserModel) GetByEmail(email string) (*User, error) {
 	return user, nil
 }
 
+// ExistsByEmail checks if a user exists with the given email
+func (m *UserModel) ExistsByEmail(email string) (bool, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM users WHERE email = ?`
+
+	err := m.DB.QueryRow(query, email).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to check user existence: %v", err)
+	}
+
+	return count > 0, nil
+}
+
 // GetAll retrieves all users
 func (m *UserModel) GetAll() ([]*User, error) {
 	query := `SELECT id, name, email, role, created_at, updated_at 
 			  FROM users ORDER BY created_at DESC`
-	
+
 	rows, err := m.DB.Query(query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users: %v", err)
@@ -142,7 +155,7 @@ func (m *UserModel) Authenticate(email, password string) (*User, error) {
 func (m *UserModel) EmailExists(email string) (bool, error) {
 	var count int
 	query := `SELECT COUNT(*) FROM users WHERE email = ?`
-	
+
 	err := m.DB.QueryRow(query, email).Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("failed to check email: %v", err)
@@ -168,8 +181,23 @@ func (u *User) CanManageBlogs() bool {
 
 // Delete deletes a user by ID (admin only operation)
 func (m *UserModel) Delete(id int) error {
+	// First, check if this is the main admin user (protect main admin)
+	var email string
+	err := m.DB.QueryRow("SELECT email FROM users WHERE id = ?", id).Scan(&email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("user not found")
+		}
+		return fmt.Errorf("failed to get user email: %v", err)
+	}
+
+	// Prevent deletion of main admin
+	if email == "admin@example.com" {
+		return fmt.Errorf("cannot delete the main administrator account")
+	}
+
 	// First, delete all blogs by this user
-	_, err := m.DB.Exec("DELETE FROM blogs WHERE user_id = ?", id)
+	_, err = m.DB.Exec("DELETE FROM blogs WHERE user_id = ?", id)
 	if err != nil {
 		return fmt.Errorf("failed to delete user blogs: %v", err)
 	}

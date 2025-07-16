@@ -11,17 +11,44 @@ install: ## Install dependencies (like composer install)
 	@echo "📦 Installing Go dependencies..."
 	go mod tidy
 	go mod download
+	@echo "🔧 Installing development tools..."
+	@go install github.com/cosmtrek/air@latest 2>/dev/null || echo "⚠️  Air installation failed, live reload may not work"
 	@echo "✅ Dependencies installed successfully!"
 
 migrate: ## Run database migrations (like php artisan migrate)
 	@echo "🗄️  Running database migrations..."
-	go run database/migrations/migrate.go
+	go run cmd/migrate/main.go up
 	@echo "✅ Migrations completed successfully!"
+
+migrate-rollback: ## Rollback last migration
+	@echo "⬇️  Rolling back last migration..."
+	go run cmd/migrate/main.go down
+	@echo "✅ Migration rollback completed!"
+
+migrate-status: ## Show migration status
+	@echo "📊 Checking migration status..."
+	go run cmd/migrate/main.go status
+
+migrate-reset: ## Reset all migrations (rollback all then migrate)
+	@echo "🔄 Resetting all migrations..."
+	go run cmd/migrate/main.go down
+	go run cmd/migrate/main.go up
+	@echo "✅ Migration reset completed!"
 
 seed: ## Run database seeders (like php artisan db:seed)
 	@echo "🌱 Seeding database with sample data..."
-	go run database/seeders/seed.go
+	go run cmd/seed/main.go
 	@echo "✅ Database seeded successfully!"
+
+seed-users: ## Run only user seeder
+	@echo "👥 Seeding users..."
+	go run cmd/seed/main.go users
+	@echo "✅ Users seeded successfully!"
+
+seed-blogs: ## Run only blog seeder
+	@echo "📝 Seeding blogs..."
+	go run cmd/seed/main.go blogs
+	@echo "✅ Blogs seeded successfully!"
 
 serve: ## Start the development server (like php artisan serve)
 	@echo "🚀 Starting development server..."
@@ -47,9 +74,21 @@ build: ## Build the application for production
 
 fresh: ## Fresh install (like php artisan migrate:fresh --seed)
 	@echo "🆕 Fresh database setup..."
-	make migrate
+	make migrate-reset
 	make seed
 	@echo "✅ Fresh database setup completed!"
+
+db-setup: ## Setup database (run migrations then seeders)
+	@echo "🗄️  Setting up database..."
+	make migrate
+	make seed
+	@echo "✅ Database setup completed!"
+
+db-reset: ## Reset database (reset migrations then seed)
+	@echo "🔄 Resetting database..."
+	make migrate-reset
+	make seed
+	@echo "✅ Database reset completed!"
 
 setup: ## Initial project setup
 	@echo "🔧 Setting up Go Web App..."
@@ -73,14 +112,6 @@ db-drop: ## Drop database
 	mysql -u root -pbs@123 -e "DROP DATABASE IF EXISTS go_web_app;"
 	@echo "✅ Database dropped successfully!"
 
-db-reset: ## Reset database (drop and recreate)
-	@echo "🔄 Resetting database..."
-	make db-drop
-	make db-create
-	make migrate
-	make seed
-	@echo "✅ Database reset completed!"
-
 # Docker commands (if using Docker)
 docker-up: ## Start Docker services
 	@if [ -f docker-compose.yml ]; then \
@@ -98,8 +129,32 @@ docker-down: ## Stop Docker services
 		echo "❌ docker-compose.yml not found"; \
 	fi
 
+docker-dev: ## Start development environment with live reload
+	@echo "🐳 Starting development environment with live reload..."
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+
+docker-dev-down: ## Stop development environment
+	@echo "🛑 Stopping development environment..."
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
+
+docker-build: ## Build Docker images
+	@echo "🔨 Building Docker images..."
+	docker-compose build
+
+docker-clean: ## Clean Docker containers and images
+	@echo "🧹 Cleaning Docker containers and images..."
+	docker-compose down --rmi all --volumes --remove-orphans
+
 # Quick development workflow
-dev: ## Quick development setup (install + migrate + seed + serve)
+dev: ## Start development server with live reload (using Air)
+	@echo "🚀 Starting development server with live reload..."
+	@echo "📝 Server will be available at: http://localhost:3000"
+	@echo "🔄 Code changes will trigger automatic reload"
+	@echo "🛑 Press Ctrl+C to stop the server"
+	@command -v air >/dev/null 2>&1 || { echo "❌ Air not installed. Install with: go install github.com/cosmtrek/air@latest"; exit 1; }
+	air -c .air.toml
+
+dev-setup: ## Quick development setup (install + migrate + seed + serve)
 	@echo "⚡ Quick development setup..."
 	make install
 	make fresh

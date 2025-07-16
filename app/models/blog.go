@@ -31,7 +31,7 @@ func NewBlogModel(db *sql.DB) *BlogModel {
 func (m *BlogModel) Create(title, content string, userID int) (*Blog, error) {
 	query := `INSERT INTO blogs (title, content, user_id, created_at, updated_at) 
 			  VALUES (?, ?, ?, NOW(), NOW())`
-	
+
 	result, err := m.DB.Exec(query, title, content, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create blog: %v", err)
@@ -55,12 +55,12 @@ func (m *BlogModel) GetByID(id int) (*Blog, error) {
 			  FROM blogs b
 			  LEFT JOIN users u ON b.user_id = u.id
 			  WHERE b.id = ?`
-	
+
 	err := m.DB.QueryRow(query, id).Scan(
 		&blog.ID, &blog.Title, &blog.Content, &blog.UserID, &blog.UserName,
 		&blog.CreatedAt, &blog.UpdatedAt,
 	)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("blog not found")
@@ -79,7 +79,7 @@ func (m *BlogModel) GetAll(limit, offset int) ([]*Blog, error) {
 			  LEFT JOIN users u ON b.user_id = u.id
 			  ORDER BY b.created_at DESC
 			  LIMIT ? OFFSET ?`
-	
+
 	rows, err := m.DB.Query(query, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get blogs: %v", err)
@@ -110,7 +110,7 @@ func (m *BlogModel) GetByUserID(userID int) ([]*Blog, error) {
 			  LEFT JOIN users u ON b.user_id = u.id
 			  WHERE b.user_id = ?
 			  ORDER BY b.created_at DESC`
-	
+
 	rows, err := m.DB.Query(query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user blogs: %v", err)
@@ -141,7 +141,7 @@ func (m *BlogModel) GetAllBlogs(limit, offset int) ([]*Blog, error) {
 			  LEFT JOIN users u ON b.user_id = u.id
 			  ORDER BY b.created_at DESC
 			  LIMIT ? OFFSET ?`
-	
+
 	rows, err := m.DB.Query(query, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all blogs: %v", err)
@@ -168,7 +168,7 @@ func (m *BlogModel) GetAllBlogs(limit, offset int) ([]*Blog, error) {
 func (m *BlogModel) Update(id int, title, content string) (*Blog, error) {
 	query := `UPDATE blogs SET title = ?, content = ?, updated_at = NOW() 
 			  WHERE id = ?`
-	
+
 	_, err := m.DB.Exec(query, title, content, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update blog: %v", err)
@@ -181,7 +181,7 @@ func (m *BlogModel) Update(id int, title, content string) (*Blog, error) {
 // Delete deletes a blog post
 func (m *BlogModel) Delete(id int) error {
 	query := `DELETE FROM blogs WHERE id = ?`
-	
+
 	result, err := m.DB.Exec(query, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete blog: %v", err)
@@ -204,7 +204,7 @@ func (m *BlogModel) Delete(id int) error {
 func (m *BlogModel) Count() (int, error) {
 	var count int
 	query := `SELECT COUNT(*) FROM blogs`
-	
+
 	err := m.DB.QueryRow(query).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count blogs: %v", err)
@@ -217,7 +217,7 @@ func (m *BlogModel) Count() (int, error) {
 func (m *BlogModel) CountUserBlogs(userID int) (int, error) {
 	var count int
 	query := `SELECT COUNT(*) FROM blogs WHERE user_id = ?`
-	
+
 	err := m.DB.QueryRow(query, userID).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count user blogs: %v", err)
@@ -230,7 +230,7 @@ func (m *BlogModel) CountUserBlogs(userID int) (int, error) {
 func (m *BlogModel) CanUserEdit(blogID, userID int) (bool, error) {
 	var ownerID int
 	query := `SELECT user_id FROM blogs WHERE id = ?`
-	
+
 	err := m.DB.QueryRow(query, blogID).Scan(&ownerID)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -252,7 +252,7 @@ func (m *BlogModel) CanUserDelete(blogID, userID int, userRole string) (bool, er
 	// Check if user owns the blog
 	var ownerID int
 	query := `SELECT user_id FROM blogs WHERE id = ?`
-	
+
 	err := m.DB.QueryRow(query, blogID).Scan(&ownerID)
 	if err != nil {
 		if err == sql.ErrNoRows {
