@@ -1,0 +1,135 @@
+{{define "content"}}
+<!-- Navigation Header -->
+<nav class="bg-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex items-center">
+        <a href="/" class="flex-shrink-0 flex items-center">
+          <h1
+            class="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent"
+          >
+            <i class="fas fa-blog mr-2"></i>Go Blog
+          </h1>
+        </a>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a
+          href="/"
+          class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+        >
+          <i class="fas fa-home mr-1"></i>Home
+        </a>
+        <a
+          href="/login"
+          class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+        >
+          <i class="fas fa-sign-in-alt mr-1"></i>Login
+        </a>
+        <a
+          href="/register"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200"
+        >
+          <i class="fas fa-user-plus mr-1"></i>Register
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Blog Post Content -->
+<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+  <!-- Back to Home -->
+  <div class="mb-8">
+    <a
+      href="/"
+      class="text-blue-600 hover:text-blue-800 font-medium text-sm transition duration-200"
+    >
+      <i class="fas fa-arrow-left mr-2"></i>Back to Blog Posts
+    </a>
+  </div>
+
+  <!-- Article Header -->
+  <article class="bg-white rounded-lg shadow-card overflow-hidden">
+    <div class="p-8">
+      <!-- Article Meta -->
+      <div class="flex items-center text-sm text-gray-500 mb-6">
+        <div class="flex items-center mr-6">
+          <i class="fas fa-user mr-2"></i>
+          <span class="font-medium">{{.Blog.UserName}}</span>
+        </div>
+        <div class="flex items-center mr-6">
+          <i class="fas fa-calendar mr-2"></i>
+          <time>{{.Blog.CreatedAt.Format "January 2, 2006"}}</time>
+        </div>
+        {{if ne .Blog.CreatedAt.Format "2006-01-02" .Blog.UpdatedAt.Format
+        "2006-01-02"}}
+        <div class="flex items-center">
+          <i class="fas fa-edit mr-2"></i>
+          <span class="text-xs"
+            >Updated {{.Blog.UpdatedAt.Format "Jan 2, 2006"}}</span
+          >
+        </div>
+        {{end}}
+      </div>
+
+      <!-- Article Title -->
+      <h1 class="text-3xl font-bold text-gray-900 mb-6 leading-tight">
+        {{.Blog.Title}}
+      </h1>
+
+      <!-- Article Content -->
+      <div class="prose prose-lg prose-blue max-w-none">
+        {{range $line := split .Blog.Content "\n"}} {{if ne $line ""}}
+        <p class="mb-4 text-gray-700 leading-relaxed">{{$line}}</p>
+        {{else}}
+        <br />
+        {{end}} {{end}}
+      </div>
+    </div>
+  </article>
+
+  <!-- Article Footer / Actions -->
+  <div
+    class="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between"
+  >
+    <div class="mb-4 sm:mb-0">
+      <p class="text-sm text-gray-600">
+        Written by
+        <span class="font-medium text-gray-900">{{.Blog.UserName}}</span>
+      </p>
+    </div>
+
+    <div class="flex space-x-3">
+      <a
+        href="/"
+        class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium transition duration-200"
+      >
+        <i class="fas fa-list mr-2"></i>More Posts
+      </a>
+      <a
+        href="/register"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200"
+      >
+        <i class="fas fa-pen mr-2"></i>Start Writing
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Related Posts Section (placeholder for future enhancement) -->
+<div class="bg-gray-50 py-12">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">Continue Reading</h2>
+    <div class="text-center py-8">
+      <i class="fas fa-book-open text-4xl text-gray-300 mb-4"></i>
+      <p class="text-gray-600 mb-4">Discover more amazing content</p>
+      <a
+        href="/"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition duration-200"
+      >
+        <i class="fas fa-arrow-left mr-2"></i>Back to All Posts
+      </a>
+    </div>
+  </div>
+</div>
+{{end}}

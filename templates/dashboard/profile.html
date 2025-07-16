@@ -1,0 +1,332 @@
+{{define "content"}}
+<!-- Dashboard Layout -->
+<div class="min-h-screen bg-gray-50">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center space-x-8">
+          <a href="/dashboard" class="flex-shrink-0 flex items-center">
+            <h1
+              class="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent"
+            >
+              <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+            </h1>
+          </a>
+          <nav class="hidden md:flex space-x-6">
+            <a
+              href="/dashboard"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+            >
+              <i class="fas fa-home mr-1"></i>Overview
+            </a>
+            <a
+              href="/dashboard/blogs"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+            >
+              <i class="fas fa-blog mr-1"></i>My Blogs
+            </a>
+            {{if .User.IsAdmin}}
+            <a
+              href="/dashboard/admin/blogs"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+            >
+              <i class="fas fa-shield-alt mr-1"></i>All Blogs (Admin)
+            </a>
+            <a
+              href="/dashboard/users"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+            >
+              <i class="fas fa-users mr-1"></i>Users
+            </a>
+            {{end}}
+            <a
+              href="/dashboard/profile"
+              class="text-blue-600 border-b-2 border-blue-600 px-3 py-2 text-sm font-medium"
+            >
+              <i class="fas fa-user mr-1"></i>Profile
+            </a>
+          </nav>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div class="text-right">
+            <div class="text-gray-700 text-sm font-medium">{{.User.Name}}</div>
+            <div class="text-xs text-gray-500">{{.User.Role}}</div>
+          </div>
+          <form action="/logout" method="POST" class="inline">
+            <button
+              type="submit"
+              onclick="return confirm('Are you sure you want to logout?')"
+              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200"
+            >
+              <i class="fas fa-sign-out-alt mr-1"></i>Logout
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+      <!-- Header -->
+      <div class="mb-8">
+        <h2 class="text-3xl font-bold text-gray-900 mb-2">My Profile</h2>
+        <p class="text-gray-600">View and manage your account information</p>
+      </div>
+
+      <!-- Profile Information -->
+      <div class="bg-white shadow-card rounded-lg overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            <i class="fas fa-user mr-2"></i>Profile Information
+          </h3>
+        </div>
+        <div class="p-6">
+          <div class="flex items-center mb-6">
+            <!-- Profile Avatar -->
+            <div class="flex-shrink-0">
+              <div
+                class="h-20 w-20 rounded-full bg-gradient-primary flex items-center justify-center"
+              >
+                <span class="text-white font-bold text-2xl">
+                  {{slice .User.Name 0 1}}
+                </span>
+              </div>
+            </div>
+            <div class="ml-6">
+              <h3 class="text-2xl font-bold text-gray-900">{{.User.Name}}</h3>
+              <p class="text-gray-600">{{.User.Email}}</p>
+              <div class="mt-2 flex items-center space-x-4">
+                <div class="flex items-center text-sm text-gray-500">
+                  <i class="fas fa-calendar mr-1"></i>
+                  <span>Member since {{.User.CreatedAt.Format "January 2, 2006"}}</span>
+                </div>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <i class="fas fa-user-tag mr-1"></i>{{.User.Role}}
+                </span>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <!-- Profile Details Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-5">
+            <!-- Basic Information -->
+            <div class="space-y-4">
+              <h4 class="text-lg font-semibold text-gray-900 mb-3">
+                <i class="fas fa-info-circle mr-2"></i>Basic Information
+              </h4>
+              <div class="space-y-3">
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                  <span class="text-gray-600 font-medium">Full Name:</span>
+                  <span class="text-gray-900">{{.User.Name}}</span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                  <span class="text-gray-600 font-medium">Email Address:</span>
+                  <span class="text-gray-900">{{.User.Email}}</span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                  <span class="text-gray-600 font-medium">User ID:</span>
+                  <span class="text-gray-900">#{{.User.ID}}</span>
+                </div>
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                  <span class="text-gray-600 font-medium">Role:</span>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <i class="fas fa-user-tag mr-1"></i>{{.User.Role}}
+                  </span>
+                </div>
+                <div class="flex justify-between py-2">
+                  <span class="text-gray-600 font-medium">Account Status:</span>
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                  >
+                    <i class="fas fa-check-circle mr-1"></i>Active
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Account Statistics -->
+            <div class="space-y-4">
+              <h4 class="text-lg font-semibold text-gray-900 mb-3">
+                <i class="fas fa-chart-line mr-2"></i>Account Statistics
+              </h4>
+              <div class="space-y-3">
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                  <span class="text-gray-600 font-medium">Blog Posts:</span>
+                  <span class="text-gray-900 font-semibold"
+                    >{{.BlogCount}}</span
+                  >
+                </div>
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                  <span class="text-gray-600 font-medium"
+                    >Account Created:</span
+                  >
+                  <span class="text-gray-900"
+                    >{{.User.CreatedAt.Format "Jan 2, 2006"}}</span
+                  >
+                </div>
+                <div class="flex justify-between py-2 border-b border-gray-100">
+                  <span class="text-gray-600 font-medium">Last Updated:</span>
+                  <span class="text-gray-900"
+                    >{{.User.UpdatedAt.Format "Jan 2, 2006"}}</span
+                  >
+                </div>
+                <div class="flex justify-between py-2">
+                  <span class="text-gray-600 font-medium">Profile Views:</span>
+                  <span class="text-gray-900 font-semibold"
+                    >{{add .BlogCount 1}}</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Blogging Actions -->
+        <div class="bg-white shadow-card rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-pen mr-2"></i>Blogging Actions
+          </h3>
+          <div class="space-y-3">
+            <a
+              href="/dashboard/blogs/create"
+              class="block w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-medium transition duration-200 text-center"
+            >
+              <i class="fas fa-plus mr-2"></i>Write New Blog Post
+            </a>
+            <a
+              href="/dashboard/blogs"
+              class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-md text-sm font-medium transition duration-200 text-center"
+            >
+              <i class="fas fa-list mr-2"></i>Manage My Blogs ({{.BlogCount}})
+            </a>
+          </div>
+        </div>
+
+        <!-- Community Actions -->
+        <div class="bg-white shadow-card rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-users mr-2"></i>Community Actions
+          </h3>
+          <div class="space-y-3">
+            <a
+              href="/"
+              class="block w-full bg-green-100 hover:bg-green-200 text-green-700 px-4 py-3 rounded-md text-sm font-medium transition duration-200 text-center"
+            >
+              <i class="fas fa-home mr-2"></i>View Homepage
+            </a>
+            {{if .User.IsAdmin}}
+            <a
+              href="/dashboard/users"
+              class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-md text-sm font-medium transition duration-200 text-center"
+            >
+              <i class="fas fa-users mr-2"></i>Browse All Users
+            </a>
+            {{end}}
+          </div>
+        </div>
+      </div>
+
+      <!-- Achievement Badges -->
+      <div class="bg-white shadow-card rounded-lg overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            <i class="fas fa-trophy mr-2"></i>Achievement Badges
+          </h3>
+        </div>
+        <div class="p-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- New Member Badge -->
+            <div class="flex items-center p-3 bg-blue-50 rounded-lg">
+              <div class="flex-shrink-0">
+                <i class="fas fa-star text-blue-600 text-xl"></i>
+              </div>
+              <div class="ml-3">
+                <h4 class="text-sm font-semibold text-blue-900">New Member</h4>
+                <p class="text-xs text-blue-700">Welcome to the community!</p>
+              </div>
+            </div>
+
+            <!-- First Post Badge -->
+            {{if gt .BlogCount 0}}
+            <div class="flex items-center p-3 bg-green-50 rounded-lg">
+              <div class="flex-shrink-0">
+                <i class="fas fa-edit text-green-600 text-xl"></i>
+              </div>
+              <div class="ml-3">
+                <h4 class="text-sm font-semibold text-green-900">First Post</h4>
+                <p class="text-xs text-green-700">
+                  You've written your first blog!
+                </p>
+              </div>
+            </div>
+            {{end}}
+
+            <!-- Prolific Writer Badge -->
+            {{if ge .BlogCount 5}}
+            <div class="flex items-center p-3 bg-purple-50 rounded-lg">
+              <div class="flex-shrink-0">
+                <i class="fas fa-pen-fancy text-purple-600 text-xl"></i>
+              </div>
+              <div class="ml-3">
+                <h4 class="text-sm font-semibold text-purple-900">
+                  Prolific Writer
+                </h4>
+                <p class="text-xs text-purple-700">5+ blog posts published!</p>
+              </div>
+            </div>
+            {{end}}
+
+            <!-- Long Time Member Badge -->
+            <div class="flex items-center p-3 bg-yellow-50 rounded-lg">
+              <div class="flex-shrink-0">
+                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+              </div>
+              <div class="ml-3">
+                <h4 class="text-sm font-semibold text-yellow-900">
+                  Active Member
+                </h4>
+                <p class="text-xs text-yellow-700">
+                  Regular community participation
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Tips -->
+      <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-indigo-900 mb-3">
+          <i class="fas fa-lightbulb mr-2"></i>Profile Tips
+        </h3>
+        <div
+          class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-indigo-800"
+        >
+          <div class="flex items-start">
+            <i class="fas fa-check-circle mt-0.5 mr-2 text-indigo-600"></i>
+            <span>Keep writing quality blog posts to engage readers</span>
+          </div>
+          <div class="flex items-start">
+            <i class="fas fa-check-circle mt-0.5 mr-2 text-indigo-600"></i>
+            <span>Interact with other community members</span>
+          </div>
+          <div class="flex items-start">
+            <i class="fas fa-check-circle mt-0.5 mr-2 text-indigo-600"></i>
+            <span>Share diverse content and perspectives</span>
+          </div>
+          <div class="flex items-start">
+            <i class="fas fa-check-circle mt-0.5 mr-2 text-indigo-600"></i>
+            <span>Be consistent with your posting schedule</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}

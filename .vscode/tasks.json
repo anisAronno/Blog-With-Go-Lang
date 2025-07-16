@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Go Web App - Setup and Run",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-c",
+        "echo '🚀 Setting up Go Web App...' && go mod tidy && echo '📦 Dependencies installed' && echo '🗄️ Running database migrations...' && go run database/migrations/migrate.go && echo '🌱 Seeding database...' && go run database/seeders/seed.go && echo '✅ Setup complete! Starting server...' && go run main.go"
+      ],
+      "group": "build",
+      "isBackground": false,
+      "problemMatcher": ["$go"]
+    }
+  ]
+}

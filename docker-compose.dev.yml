@@ -1,0 +1,12 @@
+# docker-compose.dev.yml - Development environment overrides
+version: "3.8"
+
+services:
+  app:
+    environment:
+      - APP_ENV=development
+    volumes:
+      # Mount source code for live reload in development
+      - .:/app
+      - /app/vendor
+    command: ["sh", "-c", "air || go run main.go"]

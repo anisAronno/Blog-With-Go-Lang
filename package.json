@@ -1,0 +1,46 @@
+{
+  "name": "go-web-app",
+  "version": "1.0.0",
+  "description": "Laravel-inspired Go Web Application with Blog CRUD",
+  "scripts": {
+    "dev": "make serve",
+    "serve": "make serve",
+    "build": "make build",
+    "test": "make test",
+    "migrate": "make migrate",
+    "seed": "make seed",
+    "fresh": "make fresh",
+    "setup": "make setup",
+    "watch": "air",
+    "lint": "make lint",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:restart": "docker-compose restart"
+  },
+  "keywords": [
+    "go",
+    "web",
+    "application",
+    "blog",
+    "crud",
+    "laravel-inspired",
+    "mysql",
+    "tailwind"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "tailwindcss": "^3.3.0",
+    "@tailwindcss/forms": "^0.5.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
+  },
+  "engines": {
+    "go": ">=1.19"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/go-web-app.git"
+  }
+}

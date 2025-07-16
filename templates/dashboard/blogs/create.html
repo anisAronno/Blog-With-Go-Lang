@@ -1,0 +1,221 @@
+{{define "content"}}
+<!-- Dashboard Layout -->
+<div class="min-h-screen bg-gray-50">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center space-x-8">
+          <a href="/dashboard" class="flex-shrink-0 flex items-center">
+            <h1
+              class="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent"
+            >
+              <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+            </h1>
+          </a>
+          <nav class="hidden md:flex space-x-6">
+            <a
+              href="/dashboard"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+            >
+              <i class="fas fa-home mr-1"></i>Overview
+            </a>
+            <a
+              href="/dashboard/blogs"
+              class="text-blue-600 border-b-2 border-blue-600 px-3 py-2 text-sm font-medium"
+            >
+              <i class="fas fa-blog mr-1"></i>My Blogs
+            </a>
+            {{if .User.IsAdmin}}
+            <a
+              href="/dashboard/users"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+            >
+              <i class="fas fa-users mr-1"></i>Users
+            </a>
+            {{end}}
+            <a
+              href="/dashboard/profile"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+            >
+              <i class="fas fa-user mr-1"></i>Profile
+            </a>
+          </nav>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="text-gray-700 text-sm">{{.User.Name}}</span>
+          <form action="/logout" method="POST" class="inline">
+            <button
+              type="submit"
+              onclick="return confirm('Are you sure you want to logout?')"
+              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200"
+            >
+              <i class="fas fa-sign-out-alt mr-1"></i>Logout
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="px-4 py-6 sm:px-0">
+      <!-- Header -->
+      <div class="mb-8">
+        <div class="flex items-center mb-4">
+          <a
+            href="/dashboard/blogs"
+            class="text-blue-600 hover:text-blue-800 font-medium text-sm transition duration-200"
+          >
+            <i class="fas fa-arrow-left mr-2"></i>Back to My Blogs
+          </a>
+        </div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-2">
+          Create New Blog Post
+        </h2>
+        <p class="text-gray-600">
+          Share your thoughts, ideas, and stories with the community
+        </p>
+      </div>
+
+      <!-- Create Form -->
+      <div class="bg-white shadow-card rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h3 class="text-lg font-semibold text-gray-900">
+            <i class="fas fa-pen mr-2"></i>Write Your Blog Post
+          </h3>
+        </div>
+        <form action="/dashboard/blogs" method="POST" class="p-6 space-y-6">
+          {{if .Error}}
+          <div
+            class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md"
+            data-auto-hide
+          >
+            <div class="flex">
+              <i class="fas fa-exclamation-circle mt-0.5 mr-2"></i>
+              <span>{{.Error}}</span>
+            </div>
+          </div>
+          {{end}}
+
+          <!-- Title Field -->
+          <div>
+            <label
+              for="title"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              <i class="fas fa-heading mr-1"></i>Blog Title
+            </label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value="{{.OldTitle}}"
+              class="w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-lg transition duration-200"
+              placeholder="Enter an engaging title for your blog post"
+              required
+            />
+            <p class="mt-1 text-xs text-gray-500">
+              A good title captures attention and summarizes your content
+            </p>
+          </div>
+
+          <!-- Content Field -->
+          <div>
+            <label
+              for="content"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              <i class="fas fa-edit mr-1"></i>Content
+            </label>
+            <textarea
+              id="content"
+              name="content"
+              rows="15"
+              class="w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+              placeholder="Write your blog content here. Share your thoughts, experiences, and insights..."
+              required
+            >
+{{.OldContent}}</textarea
+            >
+            <p class="mt-1 text-xs text-gray-500">
+              Write engaging content that provides value to your readers
+            </p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div
+            class="flex flex-col sm:flex-row sm:justify-between sm:items-center pt-6 border-t border-gray-200"
+          >
+            <div class="mb-4 sm:mb-0">
+              <p class="text-sm text-gray-600">
+                <i class="fas fa-info-circle mr-1"></i>
+                Your blog post will be immediately visible to all users
+              </p>
+            </div>
+            <div class="flex space-x-3">
+              <a
+                href="/dashboard/blogs"
+                class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 font-medium transition duration-200"
+              >
+                <i class="fas fa-times mr-2"></i>Cancel
+              </a>
+              <button
+                type="submit"
+                class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition duration-200"
+              >
+                <i class="fas fa-save mr-2"></i>Publish Blog Post
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Writing Tips -->
+      <div class="mt-8">
+        <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+          <h3 class="text-lg font-semibold text-green-900 mb-3">
+            <i class="fas fa-lightbulb mr-2"></i>Writing Guidelines
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-2 text-sm text-green-800">
+              <h4 class="font-medium">Content Quality</h4>
+              <ul class="space-y-1">
+                <li class="flex items-start">
+                  <i class="fas fa-check mr-2 mt-0.5 text-green-600"></i>
+                  <span>Write original, valuable content</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check mr-2 mt-0.5 text-green-600"></i>
+                  <span>Use clear and concise language</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check mr-2 mt-0.5 text-green-600"></i>
+                  <span>Structure your content with paragraphs</span>
+                </li>
+              </ul>
+            </div>
+            <div class="space-y-2 text-sm text-green-800">
+              <h4 class="font-medium">Best Practices</h4>
+              <ul class="space-y-1">
+                <li class="flex items-start">
+                  <i class="fas fa-check mr-2 mt-0.5 text-green-600"></i>
+                  <span>Proofread before publishing</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check mr-2 mt-0.5 text-green-600"></i>
+                  <span>Use engaging titles</span>
+                </li>
+                <li class="flex items-start">
+                  <i class="fas fa-check mr-2 mt-0.5 text-green-600"></i>
+                  <span>Write for your audience</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}
