@@ -192,7 +192,7 @@ func TestBlogModel(t *testing.T) {
 
 	// Test blog creation
 	t.Run("CreateBlog", func(t *testing.T) {
-		blog, err := blogModel.Create("Test Blog Title", "This is test blog content.", testUser.ID)
+		blog, err := blogModel.Create("Test Blog Title", "This is test blog content.", "This is test blog content.", "published", testUser.ID)
 		if err != nil {
 			t.Fatalf("Failed to create blog: %v", err)
 		}
@@ -217,7 +217,7 @@ func TestBlogModel(t *testing.T) {
 	// Test get blog by ID
 	t.Run("GetBlogByID", func(t *testing.T) {
 		// Create a blog first
-		createdBlog, _ := blogModel.Create("Get Blog Test", "Get blog content.", testUser.ID)
+		createdBlog, _ := blogModel.Create("Get Blog Test", "Get blog content.", "Get blog content.", "published", testUser.ID)
 
 		// Get blog by ID
 		blog, err := blogModel.GetByID(createdBlog.ID)
@@ -241,8 +241,8 @@ func TestBlogModel(t *testing.T) {
 	// Test get blogs by user ID
 	t.Run("GetBlogsByUserID", func(t *testing.T) {
 		// Create multiple blogs for the user
-		blogModel.Create("User Blog 1", "Content 1", testUser.ID)
-		blogModel.Create("User Blog 2", "Content 2", testUser.ID)
+		blogModel.Create("User Blog 1", "Content 1", "Content 1", "published", testUser.ID)
+		blogModel.Create("User Blog 2", "Content 2", "Content 2", "published", testUser.ID)
 
 		// Get blogs by user ID
 		blogs, err := blogModel.GetByUserID(testUser.ID)
@@ -265,10 +265,10 @@ func TestBlogModel(t *testing.T) {
 	// Test blog update
 	t.Run("UpdateBlog", func(t *testing.T) {
 		// Create a blog first
-		createdBlog, _ := blogModel.Create("Original Title", "Original content.", testUser.ID)
+		createdBlog, _ := blogModel.Create("Original Title", "Original content.", "Original content.", "published", testUser.ID)
 
 		// Update the blog
-		updatedBlog, err := blogModel.Update(createdBlog.ID, "Updated Title", "Updated content.")
+		updatedBlog, err := blogModel.Update(createdBlog.ID, "Updated Title", "Updated content.", "Updated content.", "published")
 		if err != nil {
 			t.Fatalf("Failed to update blog: %v", err)
 		}
@@ -285,7 +285,7 @@ func TestBlogModel(t *testing.T) {
 	// Test blog deletion
 	t.Run("DeleteBlog", func(t *testing.T) {
 		// Create a blog first
-		createdBlog, _ := blogModel.Create("Delete Test", "Delete content.", testUser.ID)
+		createdBlog, _ := blogModel.Create("Delete Test", "Delete content.", "Delete content.", "published", testUser.ID)
 
 		// Delete the blog
 		err := blogModel.Delete(createdBlog.ID)
@@ -306,7 +306,7 @@ func TestBlogModel(t *testing.T) {
 		anotherUser, _ := userModel.Create("Another User", "another@example.com", "password123")
 
 		// Create a blog by test user
-		blog, _ := blogModel.Create("Permission Test", "Permission content.", testUser.ID)
+		blog, _ := blogModel.Create("Permission Test", "Permission content.", "Permission content.", "published", testUser.ID)
 
 		// Test that owner can edit
 		canEdit, err := blogModel.CanUserEdit(blog.ID, testUser.ID)
@@ -350,9 +350,9 @@ func TestBlogCount(t *testing.T) {
 	initialCount := count
 
 	// Create some blogs
-	blogModel.Create("Count Blog 1", "Content 1", testUser.ID)
-	blogModel.Create("Count Blog 2", "Content 2", testUser.ID)
-	blogModel.Create("Count Blog 3", "Content 3", testUser.ID)
+	blogModel.Create("Count Blog 1", "Content 1", "Content 1", "published", testUser.ID)
+	blogModel.Create("Count Blog 2", "Content 2", "Content 2", "published", testUser.ID)
+	blogModel.Create("Count Blog 3", "Content 3", "Content 3", "published", testUser.ID)
 
 	// Count should increase by 3
 	count, err = blogModel.Count()

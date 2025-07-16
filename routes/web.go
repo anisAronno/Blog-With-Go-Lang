@@ -41,7 +41,11 @@ func SetupRoutes() *mux.Router {
 	dashboard.HandleFunc("", middleware.AuthMiddleware(dashboardController.Index)).Methods("GET")
 	dashboard.HandleFunc("/", middleware.AuthMiddleware(dashboardController.Index)).Methods("GET")
 	dashboard.HandleFunc("/profile", middleware.AuthMiddleware(dashboardController.Profile)).Methods("GET")
+	dashboard.HandleFunc("/profile", middleware.AuthMiddleware(dashboardController.UpdateProfile)).Methods("POST")
+	dashboard.HandleFunc("/profile/change-password", middleware.AuthMiddleware(dashboardController.ChangePassword)).Methods("POST")
 	dashboard.HandleFunc("/users", middleware.AuthMiddleware(dashboardController.Users)).Methods("GET")
+	dashboard.HandleFunc("/users/{id}/edit", middleware.AuthMiddleware(dashboardController.EditUser)).Methods("GET")
+	dashboard.HandleFunc("/users/{id}", middleware.AuthMiddleware(dashboardController.UpdateUser)).Methods("POST")
 	dashboard.HandleFunc("/users/{id}/delete", middleware.AuthMiddleware(dashboardController.DeleteUser)).Methods("POST")
 
 	// Blog management routes

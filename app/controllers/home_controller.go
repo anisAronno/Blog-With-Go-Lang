@@ -70,10 +70,14 @@ func (c *HomeController) ShowBlog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get current user (if logged in)
+	user, _ := middleware.GetCurrentUser(r)
+
 	// Prepare data for template
 	data := map[string]interface{}{
 		"Title": blog.Title,
 		"Blog":  blog,
+		"User":  user, // Add user data to template
 	}
 
 	renderTemplate(w, "blog/show", data)

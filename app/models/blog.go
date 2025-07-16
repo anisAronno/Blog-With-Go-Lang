@@ -11,8 +11,11 @@ type Blog struct {
 	ID        int       `json:"id"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
+	Excerpt   string    `json:"excerpt"`
+	Status    string    `json:"status"`
 	UserID    int       `json:"user_id"`
 	UserName  string    `json:"user_name,omitempty"` // For displaying author name
+	User      *User     `json:"user,omitempty"`      // For template access
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -28,11 +31,11 @@ func NewBlogModel(db *sql.DB) *BlogModel {
 }
 
 // Create creates a new blog post in the database
-func (m *BlogModel) Create(title, content string, userID int) (*Blog, error) {
-	query := `INSERT INTO blogs (title, content, user_id, created_at, updated_at) 
-			  VALUES (?, ?, ?, NOW(), NOW())`
+func (m *BlogModel) Create(title, content, excerpt, status string, userID int) (*Blog, error) {
+	query := `INSERT INTO blogs (title, content, excerpt, status, user_id, created_at, updated_at) 
+			  VALUES (?, ?, ?, ?, ?, NOW(), NOW())`
 
-	result, err := m.DB.Exec(query, title, content, userID)
+	result, err := m.DB.Exec(query, title, content, excerpt, status, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create blog: %v", err)
 	}
@@ -50,14 +53,14 @@ func (m *BlogModel) Create(title, content string, userID int) (*Blog, error) {
 // GetByID retrieves a blog by ID
 func (m *BlogModel) GetByID(id int) (*Blog, error) {
 	blog := &Blog{}
-	query := `SELECT b.id, b.title, b.content, b.user_id, u.name as user_name,
+	query := `SELECT b.id, b.title, b.content, b.excerpt, b.status, b.user_id, u.name as user_name,
 			  b.created_at, b.updated_at 
 			  FROM blogs b
 			  LEFT JOIN users u ON b.user_id = u.id
 			  WHERE b.id = ?`
 
 	err := m.DB.QueryRow(query, id).Scan(
-		&blog.ID, &blog.Title, &blog.Content, &blog.UserID, &blog.UserName,
+		&blog.ID, &blog.Title, &blog.Content, &blog.Excerpt, &blog.Status, &blog.UserID, &blog.UserName,
 		&blog.CreatedAt, &blog.UpdatedAt,
 	)
 
@@ -73,10 +76,11 @@ func (m *BlogModel) GetByID(id int) (*Blog, error) {
 
 // GetAll retrieves all blog posts with pagination (public posts)
 func (m *BlogModel) GetAll(limit, offset int) ([]*Blog, error) {
-	query := `SELECT b.id, b.title, b.content, b.user_id, u.name as user_name,
+	query := `SELECT b.id, b.title, b.content, b.excerpt, b.status, b.user_id, u.name as user_name,
 			  b.created_at, b.updated_at 
 			  FROM blogs b
 			  LEFT JOIN users u ON b.user_id = u.id
+			  WHERE b.status = 'published'
 			  ORDER BY b.created_at DESC
 			  LIMIT ? OFFSET ?`
 
@@ -90,7 +94,7 @@ func (m *BlogModel) GetAll(limit, offset int) ([]*Blog, error) {
 	for rows.Next() {
 		blog := &Blog{}
 		err := rows.Scan(
-			&blog.ID, &blog.Title, &blog.Content, &blog.UserID, &blog.UserName,
+			&blog.ID, &blog.Title, &blog.Content, &blog.Excerpt, &blog.Status, &blog.UserID, &blog.UserName,
 			&blog.CreatedAt, &blog.UpdatedAt,
 		)
 		if err != nil {
@@ -104,7 +108,7 @@ func (m *BlogModel) GetAll(limit, offset int) ([]*Blog, error) {
 
 // GetByUserID retrieves all blog posts by a specific user
 func (m *BlogModel) GetByUserID(userID int) ([]*Blog, error) {
-	query := `SELECT b.id, b.title, b.content, b.user_id, u.name as user_name,
+	query := `SELECT b.id, b.title, b.content, b.excerpt, b.status, b.user_id, u.name as user_name, u.email as user_email,
 			  b.created_at, b.updated_at 
 			  FROM blogs b
 			  LEFT JOIN users u ON b.user_id = u.id
@@ -120,13 +124,25 @@ func (m *BlogModel) GetByUserID(userID int) ([]*Blog, error) {
 	var blogs []*Blog
 	for rows.Next() {
 		blog := &Blog{}
+		var userEmail sql.NullString
+
 		err := rows.Scan(
-			&blog.ID, &blog.Title, &blog.Content, &blog.UserID, &blog.UserName,
+			&blog.ID, &blog.Title, &blog.Content, &blog.Excerpt, &blog.Status, &blog.UserID, &blog.UserName, &userEmail,
 			&blog.CreatedAt, &blog.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan blog: %v", err)
 		}
+
+		// Populate User field for template access
+		if blog.UserName != "" {
+			blog.User = &User{
+				ID:    blog.UserID,
+				Name:  blog.UserName,
+				Email: userEmail.String,
+			}
+		}
+
 		blogs = append(blogs, blog)
 	}
 
@@ -135,7 +151,7 @@ func (m *BlogModel) GetByUserID(userID int) ([]*Blog, error) {
 
 // GetAllBlogs retrieves all blog posts for admin users with pagination
 func (m *BlogModel) GetAllBlogs(limit, offset int) ([]*Blog, error) {
-	query := `SELECT b.id, b.title, b.content, b.user_id, u.name as user_name,
+	query := `SELECT b.id, b.title, b.content, b.excerpt, b.status, b.user_id, u.name as user_name, u.email as user_email,
 			  b.created_at, b.updated_at 
 			  FROM blogs b
 			  LEFT JOIN users u ON b.user_id = u.id
@@ -151,13 +167,25 @@ func (m *BlogModel) GetAllBlogs(limit, offset int) ([]*Blog, error) {
 	var blogs []*Blog
 	for rows.Next() {
 		blog := &Blog{}
+		var userEmail sql.NullString
+
 		err := rows.Scan(
-			&blog.ID, &blog.Title, &blog.Content, &blog.UserID, &blog.UserName,
+			&blog.ID, &blog.Title, &blog.Content, &blog.Excerpt, &blog.Status, &blog.UserID, &blog.UserName, &userEmail,
 			&blog.CreatedAt, &blog.UpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan blog: %v", err)
 		}
+
+		// Populate User field for template access
+		if blog.UserName != "" {
+			blog.User = &User{
+				ID:    blog.UserID,
+				Name:  blog.UserName,
+				Email: userEmail.String,
+			}
+		}
+
 		blogs = append(blogs, blog)
 	}
 
@@ -165,11 +193,11 @@ func (m *BlogModel) GetAllBlogs(limit, offset int) ([]*Blog, error) {
 }
 
 // Update updates a blog post
-func (m *BlogModel) Update(id int, title, content string) (*Blog, error) {
-	query := `UPDATE blogs SET title = ?, content = ?, updated_at = NOW() 
+func (m *BlogModel) Update(id int, title, content, excerpt, status string) (*Blog, error) {
+	query := `UPDATE blogs SET title = ?, content = ?, excerpt = ?, status = ?, updated_at = NOW() 
 			  WHERE id = ?`
 
-	_, err := m.DB.Exec(query, title, content, id)
+	_, err := m.DB.Exec(query, title, content, excerpt, status, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update blog: %v", err)
 	}
@@ -208,6 +236,32 @@ func (m *BlogModel) Count() (int, error) {
 	err := m.DB.QueryRow(query).Scan(&count)
 	if err != nil {
 		return 0, fmt.Errorf("failed to count blogs: %v", err)
+	}
+
+	return count, nil
+}
+
+// CountByStatus returns the number of blogs with a specific status
+func (m *BlogModel) CountByStatus(status string) (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM blogs WHERE status = ?`
+
+	err := m.DB.QueryRow(query, status).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count blogs by status: %v", err)
+	}
+
+	return count, nil
+}
+
+// CountUserBlogsByStatus returns the number of blogs by status for a specific user
+func (m *BlogModel) CountUserBlogsByStatus(userID int, status string) (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM blogs WHERE user_id = ? AND status = ?`
+
+	err := m.DB.QueryRow(query, userID, status).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count user blogs by status: %v", err)
 	}
 
 	return count, nil

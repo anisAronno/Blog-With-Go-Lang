@@ -45,6 +45,12 @@ func (m *MigrationManager) registerMigrations() {
 			UpFunc:   CreateBlogsTable,
 			DownFunc: DropBlogsTable,
 		},
+		{
+			ID:       "003",
+			Name:     "add_excerpt_status_to_blogs",
+			UpFunc:   AddExcerptAndStatusToBlogs,
+			DownFunc: RemoveExcerptAndStatusFromBlogs,
+		},
 	}
 }
 

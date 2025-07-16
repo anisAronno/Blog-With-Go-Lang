@@ -220,3 +220,124 @@ func (m *UserModel) Delete(id int) error {
 
 	return nil
 }
+
+// Count returns the total number of users
+func (m *UserModel) Count() (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM users`
+
+	err := m.DB.QueryRow(query).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count users: %v", err)
+	}
+
+	return count, nil
+}
+
+// CountByRole returns the number of users with a specific role
+func (m *UserModel) CountByRole(role string) (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM users WHERE role = ?`
+
+	err := m.DB.QueryRow(query, role).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count users by role: %v", err)
+	}
+
+	return count, nil
+}
+
+// Update updates a user's information
+func (m *UserModel) Update(id int, name, email, role string, password *string) error {
+	// Check if email is unique (excluding current user)
+	var count int
+	query := `SELECT COUNT(*) FROM users WHERE email = ? AND id != ?`
+	err := m.DB.QueryRow(query, email, id).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("failed to check email uniqueness: %v", err)
+	}
+
+	if count > 0 {
+		return fmt.Errorf("email already exists")
+	}
+
+	// Update user information
+	if password != nil && *password != "" {
+		// Hash the new password
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*password), bcrypt.DefaultCost)
+		if err != nil {
+			return fmt.Errorf("failed to hash password: %v", err)
+		}
+
+		query = `UPDATE users SET name = ?, email = ?, role = ?, password = ?, updated_at = NOW() 
+				 WHERE id = ?`
+		_, err = m.DB.Exec(query, name, email, role, string(hashedPassword), id)
+	} else {
+		// Update without changing password
+		query = `UPDATE users SET name = ?, email = ?, role = ?, updated_at = NOW() 
+				 WHERE id = ?`
+		_, err = m.DB.Exec(query, name, email, role, id)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to update user: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateProfile updates the current user's profile with optional password verification
+func (m *UserModel) UpdateProfile(userID int, name, email, currentPassword string, newPassword *string) error {
+	// If changing password, verify current password
+	if newPassword != nil && *newPassword != "" {
+		if currentPassword == "" {
+			return fmt.Errorf("current password is required when changing password")
+		}
+
+		user, err := m.GetByID(userID)
+		if err != nil {
+			return fmt.Errorf("user not found")
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(currentPassword))
+		if err != nil {
+			return fmt.Errorf("current password is incorrect")
+		}
+	}
+
+	// Check if email is unique (excluding current user)
+	var count int
+	query := `SELECT COUNT(*) FROM users WHERE email = ? AND id != ?`
+	err := m.DB.QueryRow(query, email, userID).Scan(&count)
+	if err != nil {
+		return fmt.Errorf("failed to check email uniqueness: %v", err)
+	}
+
+	if count > 0 {
+		return fmt.Errorf("email already exists")
+	}
+
+	// Update user information
+	if newPassword != nil && *newPassword != "" {
+		// Hash the new password
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*newPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return fmt.Errorf("failed to hash password: %v", err)
+		}
+
+		query = `UPDATE users SET name = ?, email = ?, password = ?, updated_at = NOW() 
+				 WHERE id = ?`
+		_, err = m.DB.Exec(query, name, email, string(hashedPassword), userID)
+	} else {
+		// Update without changing password
+		query = `UPDATE users SET name = ?, email = ?, updated_at = NOW() 
+				 WHERE id = ?`
+		_, err = m.DB.Exec(query, name, email, userID)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to update profile: %v", err)
+	}
+
+	return nil
+}

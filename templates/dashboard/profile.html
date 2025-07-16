@@ -7,38 +7,112 @@
     <p class="text-gray-600">View and manage your account information</p>
 </div>
 
-<!-- Profile Information -->
+<!-- Error Display -->
+{{if .Error}}
+<div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <i class="fas fa-exclamation-circle text-red-500"></i>
+        </div>
+        <div class="ml-3">
+            <p class="text-sm">{{.Error}}</p>
+        </div>
+    </div>
+</div>
+{{end}}
+
+<!-- Success Message -->
+{{if .Success}}
+<div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <i class="fas fa-check-circle text-green-500"></i>
+        </div>
+        <div class="ml-3">
+            <p class="text-sm">{{.Success}}</p>
+        </div>
+    </div>
+</div>
+{{end}}
+
+<!-- Profile Edit Form -->
 <div class="bg-white shadow rounded-lg overflow-hidden mb-8">
     <div class="px-6 py-4 border-b border-gray-200">
         <h3 class="text-lg font-medium text-gray-900">
-            <i class="fas fa-user mr-2"></i>Profile Information
+            <i class="fas fa-user-edit mr-2"></i>Update Profile Information
         </h3>
     </div>
-    <div class="px-6 py-4">
+    <form action="/dashboard/profile" method="POST" class="px-6 py-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                <p class="text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{{.User.Name}}</p>
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name <span class="text-red-500">*</span>
+                </label>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value="{{.User.Name}}"
+                    required
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter your full name"
+                >
             </div>
+
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <p class="text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{{.User.Email}}</p>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                    {{if eq .User.Role "admin"}}bg-purple-100 text-purple-800
-                    {{else if eq .User.Role "author"}}bg-blue-100 text-blue-800
-                    {{else}}bg-gray-100 text-gray-800{{end}}">
-                    {{.User.Role}}
-                </span>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
-                <p class="text-gray-900 bg-gray-50 px-3 py-2 rounded-md">{{.User.CreatedAt.Format "January 2, 2006"}}</p>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address <span class="text-red-500">*</span>
+                </label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value="{{.User.Email}}"
+                    required
+                    class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Enter your email address"
+                >
+                <p class="mt-1 text-xs text-gray-500">Email must be unique in the system</p>
             </div>
         </div>
-    </div>
+
+        <!-- Account Info Display -->
+        <div class="mt-6 pt-6 border-t border-gray-200">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-600">
+                <div>
+                    <span class="font-medium">User ID:</span> {{.User.ID}}
+                </div>
+                <div>
+                    <span class="font-medium">Role:</span> 
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium 
+                        {{if eq .User.Role "admin"}}bg-purple-100 text-purple-800
+                        {{else if eq .User.Role "author"}}bg-blue-100 text-blue-800
+                        {{else}}bg-gray-100 text-gray-800{{end}}">
+                        {{.User.Role}}
+                    </span>
+                </div>
+                <div>
+                    <span class="font-medium">Member Since:</span> {{.User.CreatedAt.Format "Jan 2, 2006"}}
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Fields marked with <span class="text-red-500">*</span> are required
+                </div>
+                <button
+                    type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition-colors"
+                >
+                    <i class="fas fa-save mr-2"></i>Update Profile
+                </button>
+            </div>
+        </div>
+    </form>
 </div>
 
 <!-- Account Statistics -->

@@ -16,12 +16,14 @@ import (
 // BlogController handles blog CRUD operations
 type BlogController struct {
 	BlogModel *models.BlogModel
+	UserModel *models.UserModel
 }
 
 // NewBlogController creates a new BlogController
 func NewBlogController() *BlogController {
 	return &BlogController{
 		BlogModel: models.NewBlogModel(config.Database),
+		UserModel: models.NewUserModel(config.Database),
 	}
 }
 
@@ -44,12 +46,25 @@ func (c *BlogController) Index(w http.ResponseWriter, r *http.Request) {
 	// Debug: Log how many blogs we found
 	log.Printf("Blog Controller: Found %d blogs for user %s", len(blogs), user.Name)
 
+	// Calculate user's blog statistics
+	totalBlogs := len(blogs)
+	publishedCount, _ := c.BlogModel.CountUserBlogsByStatus(user.ID, "published")
+	draftCount, _ := c.BlogModel.CountUserBlogsByStatus(user.ID, "draft")
+
+	// Prepare stats
+	stats := map[string]interface{}{
+		"TotalBlogs":     totalBlogs,
+		"PublishedBlogs": publishedCount,
+		"DraftBlogs":     draftCount,
+	}
+
 	// Prepare data for template
 	data := map[string]interface{}{
 		"Title":   "My Blogs",
 		"Blogs":   blogs,
 		"User":    user,
 		"IsAdmin": user.IsAdmin(),
+		"Stats":   stats,
 	}
 
 	renderTemplate(w, "dashboard/blogs/index", data)
@@ -80,6 +95,20 @@ func (c *BlogController) AdminIndex(w http.ResponseWriter, r *http.Request) {
 	// Debug: Log how many blogs we found
 	log.Printf("Admin Blog Controller: Found %d total blogs for admin %s", len(blogs), user.Name)
 
+	// Calculate global blog statistics for admin
+	totalBlogs := len(blogs)
+	publishedCount, _ := c.BlogModel.CountByStatus("published")
+	draftCount, _ := c.BlogModel.CountByStatus("draft")
+	totalAuthors, _ := c.UserModel.CountByRole("author")
+
+	// Prepare stats
+	stats := map[string]interface{}{
+		"TotalBlogs":     totalBlogs,
+		"PublishedBlogs": publishedCount,
+		"DraftBlogs":     draftCount,
+		"TotalAuthors":   totalAuthors,
+	}
+
 	// Prepare data for template
 	data := map[string]interface{}{
 		"Title":     "All Blogs (Admin Management)",
@@ -87,6 +116,7 @@ func (c *BlogController) AdminIndex(w http.ResponseWriter, r *http.Request) {
 		"User":      user,
 		"IsAdmin":   true,
 		"AdminView": true, // Flag to indicate this is admin view
+		"Stats":     stats,
 	}
 
 	renderTemplate(w, "dashboard/blogs/admin", data)
@@ -127,6 +157,21 @@ func (c *BlogController) Store(w http.ResponseWriter, r *http.Request) {
 	// Get form data
 	title := strings.TrimSpace(r.FormValue("title"))
 	content := strings.TrimSpace(r.FormValue("content"))
+	excerpt := strings.TrimSpace(r.FormValue("excerpt"))
+	status := strings.TrimSpace(r.FormValue("status"))
+
+	// Set defaults
+	if excerpt == "" {
+		// Auto-generate excerpt from content (first 200 characters)
+		if len(content) > 200 {
+			excerpt = content[:200] + "..."
+		} else {
+			excerpt = content
+		}
+	}
+	if status == "" {
+		status = "published"
+	}
 
 	// Validate input
 	if title == "" || content == "" {
@@ -135,7 +180,7 @@ func (c *BlogController) Store(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create blog
-	_, err = c.BlogModel.Create(title, content, user.ID)
+	_, err = c.BlogModel.Create(title, content, excerpt, status, user.ID)
 	if err != nil {
 		c.showCreateWithError(w, r, "Failed to create blog", title, content)
 		return
@@ -240,6 +285,21 @@ func (c *BlogController) Update(w http.ResponseWriter, r *http.Request) {
 	// Get form data
 	title := strings.TrimSpace(r.FormValue("title"))
 	content := strings.TrimSpace(r.FormValue("content"))
+	excerpt := strings.TrimSpace(r.FormValue("excerpt"))
+	status := strings.TrimSpace(r.FormValue("status"))
+
+	// Set defaults
+	if excerpt == "" {
+		// Auto-generate excerpt from content (first 200 characters)
+		if len(content) > 200 {
+			excerpt = content[:200] + "..."
+		} else {
+			excerpt = content
+		}
+	}
+	if status == "" {
+		status = "published"
+	}
 
 	// Validate input
 	if title == "" || content == "" {
@@ -248,7 +308,7 @@ func (c *BlogController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update blog
-	_, err = c.BlogModel.Update(id, title, content)
+	_, err = c.BlogModel.Update(id, title, content, excerpt, status)
 	if err != nil {
 		c.showEditWithError(w, r, id, "Failed to update blog", title, content)
 		return

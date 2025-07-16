@@ -90,8 +90,12 @@ func (s *BlogSeeder) Seed() error {
 			continue
 		}
 
-		// Create blog
-		_, err = s.BlogModel.Create(title, content, user.ID)
+		// Create blog with excerpt and status
+		excerpt := content
+		if len(content) > 200 {
+			excerpt = content[:200] + "..."
+		}
+		_, err = s.BlogModel.Create(title, content, excerpt, "published", user.ID)
 		if err != nil {
 			return fmt.Errorf("failed to create blog: %v", err)
 		}

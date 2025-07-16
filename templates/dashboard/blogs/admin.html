@@ -32,7 +32,9 @@
                     <td class="px-6 py-4">
                         <div>
                             <div class="text-sm font-medium text-gray-900">{{.Title}}</div>
-                            <div class="text-sm text-gray-500">by {{.User.Name}} ({{.User.Email}})</div>
+                            <div class="text-sm text-gray-500">by 
+                                {{if .User}}{{.User.Name}} ({{.User.Email}}){{else}}{{.UserName}}{{end}}
+                            </div>
                             <div class="text-xs text-gray-400 mt-1">{{.Excerpt}}</div>
                         </div>
                     </td>
@@ -123,36 +125,6 @@
                 <p class="text-2xl font-bold text-gray-900">{{.Stats.TotalAuthors}}</p>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Recent Activity -->
-<div class="mt-8 bg-white shadow rounded-lg">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-medium text-gray-900">
-            <i class="fas fa-clock mr-2"></i>Recent Activity
-        </h3>
-    </div>
-    <div class="px-6 py-4">
-        {{if .RecentBlogs}}
-        <div class="space-y-4">
-            {{range .RecentBlogs}}
-            <div class="flex items-center justify-between">
-                <div class="flex-1">
-                    <p class="text-sm font-medium text-gray-900">{{.Title}}</p>
-                    <p class="text-xs text-gray-500">by {{.User.Name}} • {{.CreatedAt.Format "Jan 2, 2006 at 3:04 PM"}}</p>
-                </div>
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                    {{if eq .Status "published"}}bg-green-100 text-green-800
-                    {{else}}bg-yellow-100 text-yellow-800{{end}}">
-                    {{.Status}}
-                </span>
-            </div>
-            {{end}}
-        </div>
-        {{else}}
-        <p class="text-gray-500 text-sm">No recent activity</p>
-        {{end}}
     </div>
 </div>
 {{end}}

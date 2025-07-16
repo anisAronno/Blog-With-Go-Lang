@@ -54,21 +54,31 @@
                         {{.CreatedAt.Format "Jan 2, 2006"}}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        {{if and (ne .Email "admin@example.com") (ne .ID $.User.ID)}}
-                        <form action="/dashboard/users/{{.ID}}/delete" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?')">
-                            <button type="submit" class="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-3 py-1 rounded-md transition-colors">
-                                <i class="fas fa-trash mr-1"></i>Delete
-                            </button>
-                        </form>
-                        {{else if eq .Email "admin@example.com"}}
-                        <span class="text-gray-400 bg-gray-100 px-3 py-1 rounded-md">
-                            <i class="fas fa-shield-alt mr-1"></i>Protected
-                        </span>
-                        {{else}}
-                        <span class="text-gray-400 bg-gray-100 px-3 py-1 rounded-md">
-                            <i class="fas fa-user mr-1"></i>You
-                        </span>
-                        {{end}}
+                        <div class="flex space-x-2">
+                            <!-- Edit Button (only for admin, not for self or super admin) -->
+                            {{if and (ne .ID 1) (ne .ID $.User.ID)}}
+                            <a href="/dashboard/users/{{.ID}}/edit" class="text-blue-600 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 px-3 py-1 rounded-md transition-colors">
+                                <i class="fas fa-edit mr-1"></i>Edit
+                            </a>
+                            {{end}}
+                            
+                            <!-- Delete Button (only if not super admin ID 1 and not self) -->
+                            {{if and (ne .ID 1) (ne .ID $.User.ID)}}
+                            <form action="/dashboard/users/{{.ID}}/delete" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?')">
+                                <button type="submit" class="text-red-600 hover:text-red-900 bg-red-100 hover:bg-red-200 px-3 py-1 rounded-md transition-colors">
+                                    <i class="fas fa-trash mr-1"></i>Delete
+                                </button>
+                            </form>
+                            {{else if eq .ID 1}}
+                            <span class="text-gray-400 bg-gray-100 px-3 py-1 rounded-md">
+                                <i class="fas fa-shield-alt mr-1"></i>Super Admin
+                            </span>
+                            {{else}}
+                            <span class="text-gray-400 bg-gray-100 px-3 py-1 rounded-md">
+                                <i class="fas fa-user mr-1"></i>You
+                            </span>
+                            {{end}}
+                        </div>
                     </td>
                 </tr>
                 {{end}}
