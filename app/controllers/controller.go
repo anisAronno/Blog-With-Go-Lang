@@ -9,12 +9,24 @@ import (
 
 // renderTemplate renders a template with the given data
 func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	// Parse base layout and specific template
-	layoutPath := "templates/layouts/base.html"
+	// Determine layout and template execution based on template path
+	var layoutPath string
+	var executeTemplate string
+
+	if strings.HasPrefix(tmpl, "dashboard/") {
+		// Dashboard templates use dashboard layout
+		layoutPath = "templates/dashboard/layout.html"
+		executeTemplate = "dashboard_layout"
+	} else {
+		// Other templates use base layout
+		layoutPath = "templates/layouts/base.html"
+		executeTemplate = "base"
+	}
+
 	templatePath := "templates/" + tmpl + ".html"
 
 	// Create template with helper functions
-	t := template.New("base").Funcs(template.FuncMap{
+	t := template.New(executeTemplate).Funcs(template.FuncMap{
 		"split": strings.Split,
 		"slice": func(s string, start, end int) string {
 			if start >= len(s) {
@@ -40,8 +52,8 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 		return
 	}
 
-	// Execute the template
-	err = t.ExecuteTemplate(w, "base", data)
+	// Execute the appropriate template
+	err = t.ExecuteTemplate(w, executeTemplate, data)
 	if err != nil {
 		http.Error(w, "Execute error: "+err.Error(), http.StatusInternalServerError)
 	}
