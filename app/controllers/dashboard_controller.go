@@ -314,7 +314,7 @@ func (c *DashboardController) Users(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Calculate offset for pagination
-	limit := 10
+	limit := 12
 	offset := (page - 1) * limit
 
 	// Get users for current page
@@ -361,6 +361,7 @@ func (c *DashboardController) Users(w http.ResponseWriter, r *http.Request) {
 		"HasPrev":     hasPrev,
 		"NextPage":    page + 1,
 		"PrevPage":    page - 1,
+		"BaseURL":     "/dashboard/users", // For pagination component
 	}
 
 	renderTemplate(w, "dashboard/users", data)

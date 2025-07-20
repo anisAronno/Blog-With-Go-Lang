@@ -37,7 +37,7 @@ func (c *HomeController) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Calculate offset for pagination
-	limit := 10
+	limit := 12
 	offset := (page - 1) * limit
 
 	// Get blogs for current page
@@ -72,6 +72,7 @@ func (c *HomeController) Index(w http.ResponseWriter, r *http.Request) {
 		"HasPrev":    hasPrev,
 		"NextPage":   page + 1,
 		"PrevPage":   page - 1,
+		"BaseURL":    "/", // For pagination component
 	}
 
 	renderTemplate(w, "home", data)

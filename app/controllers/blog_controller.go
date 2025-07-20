@@ -46,7 +46,7 @@ func (c *BlogController) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Calculate offset for pagination
-	limit := 10
+	limit := 12
 	offset := (page - 1) * limit
 
 	// Get user's blogs for current page
@@ -71,7 +71,6 @@ func (c *BlogController) Index(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Blog Controller: Found %d blogs for user %s (page %d)", len(blogs), user.Name, page)
 
 	// Calculate user's blog statistics
-	totalUserBlogs := totalBlogs
 	publishedCount, _ := c.BlogModel.CountUserBlogsByStatus(user.ID, "published")
 	draftCount, _ := c.BlogModel.CountUserBlogsByStatus(user.ID, "draft")
 
@@ -95,6 +94,7 @@ func (c *BlogController) Index(w http.ResponseWriter, r *http.Request) {
 		"HasPrev":    hasPrev,
 		"NextPage":   page + 1,
 		"PrevPage":   page - 1,
+		"BaseURL":    "/dashboard/blogs", // For pagination component
 	}
 
 	renderTemplate(w, "dashboard/blogs/index", data)
@@ -125,7 +125,7 @@ func (c *BlogController) AdminIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Calculate offset for pagination
-	limit := 10
+	limit := 12
 	offset := (page - 1) * limit
 
 	// Get blogs for current page
@@ -150,7 +150,6 @@ func (c *BlogController) AdminIndex(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Admin Blog Controller: Found %d total blogs for admin %s (page %d)", len(blogs), user.Name, page)
 
 	// Calculate global blog statistics for admin
-	globalTotalBlogs := totalBlogs
 	publishedCount, _ := c.BlogModel.CountByStatus("published")
 	draftCount, _ := c.BlogModel.CountByStatus("draft")
 	totalAuthors, _ := c.UserModel.CountByRole("author")
@@ -177,6 +176,7 @@ func (c *BlogController) AdminIndex(w http.ResponseWriter, r *http.Request) {
 		"HasPrev":    hasPrev,
 		"NextPage":   page + 1,
 		"PrevPage":   page - 1,
+		"BaseURL":    "/dashboard/admin/blogs", // For pagination component
 	}
 
 	renderTemplate(w, "dashboard/blogs/admin", data)

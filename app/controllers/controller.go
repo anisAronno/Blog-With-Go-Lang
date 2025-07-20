@@ -25,6 +25,14 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 
 	templatePath := "templates/" + tmpl + ".html"
 
+	// Component template paths
+	componentPaths := []string{
+		"templates/components/header.html",
+		"templates/components/dashboard-header.html",
+		"templates/components/footer.html",
+		"templates/components/pagination.html",
+	}
+
 	// Create template with helper functions
 	t := template.New(executeTemplate).Funcs(template.FuncMap{
 		"split": strings.Split,
@@ -45,8 +53,12 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 		},
 	})
 
+	// Prepare all template files
+	allTemplateFiles := []string{layoutPath, templatePath}
+	allTemplateFiles = append(allTemplateFiles, componentPaths...)
+
 	// Parse template files
-	t, err := t.ParseFiles(layoutPath, templatePath)
+	t, err := t.ParseFiles(allTemplateFiles...)
 	if err != nil {
 		http.Error(w, "Template error: "+err.Error(), http.StatusInternalServerError)
 		return
