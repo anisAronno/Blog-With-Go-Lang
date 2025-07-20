@@ -27,21 +27,51 @@ func NewHomeController() *HomeController {
 
 // Index displays the homepage with blog listing
 func (c *HomeController) Index(w http.ResponseWriter, r *http.Request) {
-	// Get all blogs for homepage
-	blogs, err := c.BlogModel.GetAll(10, 0) // Get latest 10 blogs
+	// Get page parameter from URL (default to 1)
+	pageStr := r.URL.Query().Get("page")
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	// Calculate offset for pagination
+	limit := 10
+	offset := (page - 1) * limit
+
+	// Get blogs for current page
+	blogs, err := c.BlogModel.GetAll(limit, offset)
 	if err != nil {
 		http.Error(w, "Failed to load blogs", http.StatusInternalServerError)
 		return
 	}
+
+	// Get total blog count for pagination
+	totalBlogs, err := c.BlogModel.Count()
+	if err != nil {
+		totalBlogs = 0 // Default to 0 if count fails
+	}
+
+	// Calculate pagination info
+	totalPages := (totalBlogs + limit - 1) / limit // Ceiling division
+	hasNext := page < totalPages
+	hasPrev := page > 1
 
 	// Check if user is logged in (using session for homepage)
 	user, _ := middleware.GetCurrentUserFromSession(r) // Don't show error for homepage
 
 	// Prepare data for template
 	data := map[string]interface{}{
-		"Title": "Welcome to Go Blog",
-		"Blogs": blogs,
-		"User":  user, // Include user for navigation
+		"Title":      "Welcome to Go Blog",
+		"Blogs":      blogs,
+		"User":       user, // Include user for navigation
+		"Page":       page,
+		"TotalPages": totalPages,
+		"HasNext":    hasNext,
+		"HasPrev":    hasPrev,
+		"NextPage":   page + 1,
+		"PrevPage":   page - 1,
 	}
 
 	renderTemplate(w, "home", data)
@@ -71,7 +101,7 @@ func (c *HomeController) ShowBlog(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get current user (if logged in)
-	user, _ := middleware.GetCurrentUser(r)
+	user, _ := middleware.GetCurrentUserFromSession(r)
 
 	// Prepare data for template
 	data := map[string]interface{}{

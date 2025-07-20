@@ -304,12 +304,36 @@ func (c *DashboardController) Users(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get all users
-	users, err := c.UserModel.GetAll()
+	// Get page parameter from URL (default to 1)
+	pageStr := r.URL.Query().Get("page")
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	// Calculate offset for pagination
+	limit := 10
+	offset := (page - 1) * limit
+
+	// Get users for current page
+	users, err := c.UserModel.GetAllPaginated(limit, offset)
 	if err != nil {
 		http.Error(w, "Failed to load users", http.StatusInternalServerError)
 		return
 	}
+
+	// Get total user count for pagination
+	totalUsers, err := c.UserModel.Count()
+	if err != nil {
+		totalUsers = 0 // Default to 0 if count fails
+	}
+
+	// Calculate pagination info
+	totalPages := (totalUsers + limit - 1) / limit // Ceiling division
+	hasNext := page < totalPages
+	hasPrev := page > 1
 
 	// Calculate user role statistics
 	adminCount, _ := c.UserModel.CountByRole("admin")
@@ -331,6 +355,12 @@ func (c *DashboardController) Users(w http.ResponseWriter, r *http.Request) {
 		"CurrentUser": currentUser,
 		"IsAdmin":     currentUser.IsAdmin(),
 		"UserStats":   userStats,
+		"Page":        page,
+		"TotalPages":  totalPages,
+		"HasNext":     hasNext,
+		"HasPrev":     hasPrev,
+		"NextPage":    page + 1,
+		"PrevPage":    page - 1,
 	}
 
 	renderTemplate(w, "dashboard/users", data)

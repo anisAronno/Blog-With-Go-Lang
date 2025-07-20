@@ -36,18 +36,42 @@ func (c *BlogController) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Always show only user's own blogs in dashboard
-	blogs, err := c.BlogModel.GetByUserID(user.ID)
+	// Get page parameter from URL (default to 1)
+	pageStr := r.URL.Query().Get("page")
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	// Calculate offset for pagination
+	limit := 10
+	offset := (page - 1) * limit
+
+	// Get user's blogs for current page
+	blogs, err := c.BlogModel.GetByUserIDPaginated(user.ID, limit, offset)
 	if err != nil {
 		http.Error(w, "Failed to load blogs", http.StatusInternalServerError)
 		return
 	}
 
+	// Get total user blog count for pagination
+	totalBlogs, err := c.BlogModel.CountUserBlogs(user.ID)
+	if err != nil {
+		totalBlogs = 0 // Default to 0 if count fails
+	}
+
+	// Calculate pagination info
+	totalPages := (totalBlogs + limit - 1) / limit // Ceiling division
+	hasNext := page < totalPages
+	hasPrev := page > 1
+
 	// Debug: Log how many blogs we found
-	log.Printf("Blog Controller: Found %d blogs for user %s", len(blogs), user.Name)
+	log.Printf("Blog Controller: Found %d blogs for user %s (page %d)", len(blogs), user.Name, page)
 
 	// Calculate user's blog statistics
-	totalBlogs := len(blogs)
+	totalUserBlogs := totalBlogs
 	publishedCount, _ := c.BlogModel.CountUserBlogsByStatus(user.ID, "published")
 	draftCount, _ := c.BlogModel.CountUserBlogsByStatus(user.ID, "draft")
 
@@ -60,11 +84,17 @@ func (c *BlogController) Index(w http.ResponseWriter, r *http.Request) {
 
 	// Prepare data for template
 	data := map[string]interface{}{
-		"Title":   "My Blogs",
-		"Blogs":   blogs,
-		"User":    user,
-		"IsAdmin": user.IsAdmin(),
-		"Stats":   stats,
+		"Title":      "My Blogs",
+		"Blogs":      blogs,
+		"User":       user,
+		"IsAdmin":    user.IsAdmin(),
+		"Stats":      stats,
+		"Page":       page,
+		"TotalPages": totalPages,
+		"HasNext":    hasNext,
+		"HasPrev":    hasPrev,
+		"NextPage":   page + 1,
+		"PrevPage":   page - 1,
 	}
 
 	renderTemplate(w, "dashboard/blogs/index", data)
@@ -85,18 +115,42 @@ func (c *BlogController) AdminIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get all blogs for admin
-	blogs, err := c.BlogModel.GetAllBlogs(100, 0)
+	// Get page parameter from URL (default to 1)
+	pageStr := r.URL.Query().Get("page")
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	// Calculate offset for pagination
+	limit := 10
+	offset := (page - 1) * limit
+
+	// Get blogs for current page
+	blogs, err := c.BlogModel.GetAllBlogs(limit, offset)
 	if err != nil {
 		http.Error(w, "Failed to load blogs", http.StatusInternalServerError)
 		return
 	}
 
+	// Get total blog count for pagination
+	totalBlogs, err := c.BlogModel.Count()
+	if err != nil {
+		totalBlogs = 0 // Default to 0 if count fails
+	}
+
+	// Calculate pagination info
+	totalPages := (totalBlogs + limit - 1) / limit // Ceiling division
+	hasNext := page < totalPages
+	hasPrev := page > 1
+
 	// Debug: Log how many blogs we found
-	log.Printf("Admin Blog Controller: Found %d total blogs for admin %s", len(blogs), user.Name)
+	log.Printf("Admin Blog Controller: Found %d total blogs for admin %s (page %d)", len(blogs), user.Name, page)
 
 	// Calculate global blog statistics for admin
-	totalBlogs := len(blogs)
+	globalTotalBlogs := totalBlogs
 	publishedCount, _ := c.BlogModel.CountByStatus("published")
 	draftCount, _ := c.BlogModel.CountByStatus("draft")
 	totalAuthors, _ := c.UserModel.CountByRole("author")
@@ -111,12 +165,18 @@ func (c *BlogController) AdminIndex(w http.ResponseWriter, r *http.Request) {
 
 	// Prepare data for template
 	data := map[string]interface{}{
-		"Title":     "All Blogs (Admin Management)",
-		"Blogs":     blogs,
-		"User":      user,
-		"IsAdmin":   true,
-		"AdminView": true, // Flag to indicate this is admin view
-		"Stats":     stats,
+		"Title":      "All Blogs (Admin Management)",
+		"Blogs":      blogs,
+		"User":       user,
+		"IsAdmin":    true,
+		"AdminView":  true, // Flag to indicate this is admin view
+		"Stats":      stats,
+		"Page":       page,
+		"TotalPages": totalPages,
+		"HasNext":    hasNext,
+		"HasPrev":    hasPrev,
+		"NextPage":   page + 1,
+		"PrevPage":   page - 1,
 	}
 
 	renderTemplate(w, "dashboard/blogs/admin", data)

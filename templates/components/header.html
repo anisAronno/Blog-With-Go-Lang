@@ -1,0 +1,59 @@
+{{define "header"}}
+<!-- Navigation Header -->
+<nav class="bg-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex items-center">
+        <a href="/" class="flex-shrink-0 flex items-center">
+          <h1
+            class="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent"
+          >
+            <i class="fas fa-blog mr-2"></i>Go Blog
+          </h1>
+        </a>
+      </div>
+      <div class="flex items-center space-x-4">
+        {{if .User}}
+        <!-- User is logged in - show dashboard link -->
+        <span class="text-gray-700 text-sm">
+          Welcome, {{.User.Name}} {{if .User.Role}}
+          <span
+            class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full ml-1"
+            >{{.User.Role}}</span
+          >
+          {{end}}
+        </span>
+        <a
+          href="/dashboard"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200"
+        >
+          <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
+        </a>
+        <form action="/logout" method="POST" class="inline">
+          <button
+            type="submit"
+            class="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+          >
+            <i class="fas fa-sign-out-alt mr-1"></i>Logout
+          </button>
+        </form>
+        {{else}}
+        <!-- User is not logged in - show login/register -->
+        <a
+          href="/login"
+          class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition duration-200"
+        >
+          <i class="fas fa-sign-in-alt mr-1"></i>Login
+        </a>
+        <a
+          href="/register"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-200"
+        >
+          <i class="fas fa-user-plus mr-1"></i>Register
+        </a>
+        {{end}}
+      </div>
+    </div>
+  </div>
+</nav>
+{{end}}

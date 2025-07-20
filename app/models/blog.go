@@ -149,6 +149,49 @@ func (m *BlogModel) GetByUserID(userID int) ([]*Blog, error) {
 	return blogs, nil
 }
 
+// GetByUserIDPaginated retrieves blogs by user ID with pagination
+func (m *BlogModel) GetByUserIDPaginated(userID, limit, offset int) ([]*Blog, error) {
+	query := `SELECT b.id, b.title, b.content, b.excerpt, b.status, b.user_id, u.name as user_name, u.email as user_email,
+			  b.created_at, b.updated_at 
+			  FROM blogs b
+			  LEFT JOIN users u ON b.user_id = u.id
+			  WHERE b.user_id = ?
+			  ORDER BY b.created_at DESC LIMIT ? OFFSET ?`
+
+	rows, err := m.DB.Query(query, userID, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user blogs: %v", err)
+	}
+	defer rows.Close()
+
+	var blogs []*Blog
+	for rows.Next() {
+		blog := &Blog{}
+		var userEmail sql.NullString
+
+		err := rows.Scan(
+			&blog.ID, &blog.Title, &blog.Content, &blog.Excerpt, &blog.Status, &blog.UserID, &blog.UserName, &userEmail,
+			&blog.CreatedAt, &blog.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan blog: %v", err)
+		}
+
+		// Populate User field for template access
+		if blog.UserName != "" {
+			blog.User = &User{
+				ID:    blog.UserID,
+				Name:  blog.UserName,
+				Email: userEmail.String,
+			}
+		}
+
+		blogs = append(blogs, blog)
+	}
+
+	return blogs, nil
+}
+
 // GetAllBlogs retrieves all blog posts for admin users with pagination
 func (m *BlogModel) GetAllBlogs(limit, offset int) ([]*Blog, error) {
 	query := `SELECT b.id, b.title, b.content, b.excerpt, b.status, b.user_id, u.name as user_name, u.email as user_email,

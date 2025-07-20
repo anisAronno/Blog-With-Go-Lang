@@ -135,6 +135,30 @@ func (m *UserModel) GetAll() ([]*User, error) {
 	return users, nil
 }
 
+// GetAllPaginated retrieves users with pagination
+func (m *UserModel) GetAllPaginated(limit, offset int) ([]*User, error) {
+	query := `SELECT id, name, email, role, created_at, updated_at 
+			  FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?`
+
+	rows, err := m.DB.Query(query, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users: %v", err)
+	}
+	defer rows.Close()
+
+	var users []*User
+	for rows.Next() {
+		user := &User{}
+		err := rows.Scan(&user.ID, &user.Name, &user.Email, &user.Role, &user.CreatedAt, &user.UpdatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %v", err)
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 // Authenticate checks if the provided password matches the user's password
 func (m *UserModel) Authenticate(email, password string) (*User, error) {
 	user, err := m.GetByEmail(email)
